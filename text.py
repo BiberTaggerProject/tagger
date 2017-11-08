@@ -233,7 +233,6 @@ class Text:
                                 if sent[mvi][0].lower() in self.lexicon['vwbn'][semantic_domain]:
                                     sent[mvi][2][1] = semantic_domain
                                     break
-                            print(sent)
 
                         elif 'by' in sent_tail_words:
                             # vpsv++by+xvbn+    main clause passive verb + + by passive
