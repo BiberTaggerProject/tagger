@@ -133,7 +133,7 @@ class Text:
         
         Keyword Arguments:
             tail_length: the length of the tail. Setting tail length to a negative index will return a tail up until
-            that index in a sentence. For example, tail_length=-1 would the rest of a sentence.
+            that index in a sentence. For example, tail_length=-1 would return up to but not including -1
             ind: an integer representing the index of subitems in sent. sent=0 returns a list of words and sent=1
             returns a list of tags
             entity: a string that determines the value of ind. Value must be "tags" or "words" for it to do anything.
@@ -181,7 +181,14 @@ class Text:
     def passives(self, sent):
         """Appends tags to auxilliary and main verbs in passive verb phrases. Gap allowed between auxilliary and main 
         verb determind by parser_config['passive_range']"""
+        existential_there_ind = None
+
         for i, (word, tag, biber_tags) in enumerate(sent):
+
+            # the presence of existential there is used later to distinguish between a passive yes/no question and
+            # a passive post-nominal modifier
+            if tag == "EX":
+                existential_there_ind = i
 
             # Finds be-verb
             if tag[:2] == 'VB':
@@ -194,9 +201,10 @@ class Text:
                 if 'VVN' in sent_tail_tags:
 
                     main_verb_i = [i + n + 1 for n, elem in enumerate(sent_tail_tags) if elem == 'VVN']
+
                     sent_tail_words = self.sent_tails(sent,
                                                       max(main_verb_i),
-                                                      tail_length=-1,
+                                                      tail_length=len(sent) - max(main_verb_i),
                                                       entity='words')
                     post_nominal_modifier = False
 
@@ -206,10 +214,29 @@ class Text:
                     # Tags as a non-finite -ed relative clause
                     if not aux_mv_gap_tags:
                         pass
+
                     # matches post-nominal modifier -- tags added in for-loop below in case there are multiple main verbs
                     # todo: account for mistagging of inversion in passive yes/no questions e.g. were the groups treated equally?
                     elif len(aux_mv_gap_tags[-1]) > 1 and aux_mv_gap_tags[-1][0] == 'N':
-                            post_nominal_modifier = True
+                        # PROBLEM: It is difficult to distinguish between (a) a post-nominal modifier in a question
+                        # and (b) a question in passive voice.
+                        #
+                        # Some type of statistical solution will probably need to replace this part in the future.
+                        # Maybe conditional probability using word frequencies of main verbs?
+                        # For now, the only rule I can figure is that it will be a PNM after existential there
+                        #
+                        # I don't think that distinguishing between a passive question and a post-nominal modifier
+                        # within an active-voice question can be determined using rules.
+
+
+                            if '?' in sent_tail_words:
+                                if existential_there_ind is not None and 8 > max(main_verb_i) - existential_there_ind:
+                                    post_nominal_modifier = True
+
+                            else:
+                                post_nominal_modifier = True
+
+
                     # Excludes because match is perfect aspect
                     elif 'VH' in aux_mv_gap_tags :
                         if 'VB' not in aux_mv_gap_tags:
@@ -219,7 +246,6 @@ class Text:
                             continue
 
                     for mvi in main_verb_i:
-
 
                         if post_nominal_modifier:
                             # vwbn+++xvbn+      passive postnominal modifier + + + past participle form
