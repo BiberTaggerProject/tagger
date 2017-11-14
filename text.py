@@ -230,8 +230,20 @@ class Text:
 
 
                             if '?' in sent_tail_words:
+                                # tags as vwbn... if existential there is within eight tokens to the left
                                 if existential_there_ind is not None and 8 > max(main_verb_i) - existential_there_ind:
                                     post_nominal_modifier = True
+
+                                # tags as vpsv if there are coordinated main verbs
+                                elif len(main_verb_i) > 1:
+                                    pass
+
+                                # tags as vwbn if the main verb is in a set of words from Longman that occur more frequently
+                                # as vwbn than as vpsv
+                                elif sent[main_verb_i[0]][0].lower() in self.lexicon['vwbn_gt_vpsv']:
+                                    post_nominal_modifier = True
+                                    print(' '.join(wrd for wrd, _, ___ in sent))
+
 
                             else:
                                 post_nominal_modifier = True

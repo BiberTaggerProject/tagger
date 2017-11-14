@@ -38,6 +38,13 @@ class BiberCorpus(Corpus):
                 'pp3+pp3+++', 'pp$+pp3+++', 'ppl+pp3+++', 'ppls+pp3+++', 'pp3+it+++', 'pp$+it+++',
                 'pp$$++++', 'pn"++++', 'pn++++']
 
+    def __init__(self, folder, filter_files=True):
+        super().__init__(folder)
+
+        if filter_files:
+            # If using the Longman Corpus, this excludes untagged and old directories
+            self.files = [f for f in self.files if 'Old' not in f and 'Tagd' in f]
+
     def word_list(self, tag):
         """Returns types that have the given tag."""
         matches = self.find(tag, before=0, after=0, printing=False)
@@ -100,6 +107,55 @@ class BiberCorpus(Corpus):
 
         if not printing:
             return results
+
+    def lex_freq(self, *tags, encoding='UTF-8', encoding_errors='ignore'):
+        """
+        Returns conditional frequency distribution of words based on the beginning of * tags.
+        
+        Output is a dict of dicts.
+        
+        >>> bc = BiberCorpus('/home/mike/corpora/Longman Spoken and Written Corpus (FOR GRAMMAR PROJECT USE ONLY!)')
+        >>> fd = bc.lex_freq('vwbn', 'vpsv')
+        """
+        freq_dist = {}
+        tags = list(tags)
+
+        # Cleans *tags items
+        for i, tag in enumerate(tags):
+            if tag[0] == '^':
+                tags[i] = tags[1:]
+
+
+        for file in self.files:
+            with open(file, encoding=encoding, errors=encoding_errors) as f:
+                text = f.read().splitlines()
+
+            for i, line in enumerate(text):
+                # Skips metadata
+                if not line or line[0] == '{':
+                    continue
+
+                line = line.split(' ^')
+
+                # Makes sure there is really a token tag pair
+                if len(line) < 2:
+                    continue
+
+                w, t = line[0].lower(), line[1]
+
+                for tag in tags:
+                    if tag == t[:len(tag)]:
+
+                        if not freq_dist.get(w, False):
+                            freq_dist[w] = {tg: 0 for tg in tags}
+
+                        freq_dist[w][tag] += 1
+                        print(w, t, file)
+
+        return freq_dist
+
+
+
 
     def find_in_sent(self, tags, encoding='UTF-8', encoding_errors='ignore'):
 
