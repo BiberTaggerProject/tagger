@@ -32,7 +32,6 @@ class Text:
 
     lexicon = lx.lexicon
 
-
     def __init__(self, filepath, register='written', encoding='UTF-8', open_errors='ignore', lowercase=False):
         self.parsers = [self.phrasal_verbs, self.passives, self.proper_nouns, self.basic_features, self.modal_nec]
         self.register = register
@@ -211,7 +210,8 @@ class Text:
                     #first two characters in tags between auxilliary verb and first main verb
                     aux_mv_gap_tags = [tag[:2] for  word, tag, bt in sent[i + 1:main_verb_i[0]]]
 
-                    # Tags as a non-finite -ed relative clause
+                    # If this evaluates to True, then it means there are no words between the aux. verb and main verb
+                    # Ruling out the possibility of a post-nominal modifier
                     if not aux_mv_gap_tags:
                         pass
 
@@ -242,12 +242,9 @@ class Text:
                                 # as vwbn than as vpsv
                                 elif sent[main_verb_i[0]][0].lower() in self.lexicon['vwbn_gt_vpsv']:
                                     post_nominal_modifier = True
-                                    print(' '.join(wrd for wrd, _, ___ in sent))
-
 
                             else:
                                 post_nominal_modifier = True
-
 
                     # Excludes because match is perfect aspect
                     elif 'VH' in aux_mv_gap_tags :
@@ -257,6 +254,11 @@ class Text:
                         elif aux_mv_gap_tags.index('VB') < aux_mv_gap_tags.index('VH'):
                             continue
 
+                    # Adds tags to aux. verb (current index in sent)
+
+                    sent[i][2] = self.be_aux_tag(word)
+
+                    # Adds tags to main verbs (ahead of current index in sent)
                     for mvi in main_verb_i:
 
                         if post_nominal_modifier:
@@ -338,6 +340,95 @@ class Text:
                             sent[i + n][2][1] = 'nec'
 
         return sent
+
+    @staticmethod
+    def be_aux_tag(word):
+        """
+        Returns biber tag corresponding to the token of `to be` as an auxilliary verb. 
+        
+        Can only be used if it is already known that a verb is an aux verb. Therefore, within this class, it should
+        only be used in the methods tagging for passive voice and progressive aspect.
+        
+        Arguments:
+            word: a string representing a token that is already known to be auxilliary `to be` 
+        """
+
+        biber_tag = ['', '', '', '', '']
+        word = word.lower()
+
+        biber_tag[2] = 'aux'
+
+        # PRESENT TENSE
+
+        if word == 'are':
+            # vb+ber+aux++      verb + are + auxiliary verb
+            biber_tag[0] = 'vb'
+            biber_tag[1] = 'ber'
+
+        elif word == "'re":
+            # vb+ber+aux++0     verb + are + auxiliary verb + + contracted ('re)
+            biber_tag[0] = 'vb'
+            biber_tag[1] = 'ber'
+            biber_tag[4] = '0'
+
+        elif word == 'is':
+            # vbz+bez+aux++     3rd person sg. verb + is + auxiliary verb
+            biber_tag[0] = 'vbz'
+            biber_tag[1] = 'bez'
+
+        elif word == "'s":
+            # vbz+bez+aux++0    3rd person sg. + is + auxiliary verb. + + contracted (IS)
+            biber_tag[0] = 'vbz'
+            biber_tag[1] = 'bez'
+            biber_tag[4] = '0'
+
+        elif word == 'am':
+            # vb+bem+aux++      verb + am + auxiliary verb
+            biber_tag[0] = 'vb'
+            biber_tag[1] = 'bem'
+
+        elif word == "'m":
+            # vb+bem+aux++0     verb + am + auxiliary verb + + contracted ('m)
+            biber_tag[0] = 'vb'
+            biber_tag[1] = 'bem'
+            biber_tag[4] = '0'
+
+        # PAST TENSE
+
+        elif word == 'was':
+            # vbd+bedz+aux++    past tense verb + was + auxiliary verb
+            biber_tag[0] = 'vbd'
+            biber_tag[1] = 'bedz'
+
+        # BASE FORM
+
+        elif word == 'be':
+            # vb+be+aux++      base form of verb + be + auxiliary verb
+            biber_tag[0] = 'vb'
+            biber_tag[1] = 'be'
+
+        # PERFECT ASPECT
+
+        elif word == 'been':
+            # vprf+ben+aux+xvbn+    perfect aspect verb + been + auxiliary verb
+            biber_tag[0] = 'vprf'
+            biber_tag[1] = 'ben'
+            biber_tag[3] = 'xvbn'
+
+        # PROGRESSIVE ASPECT
+
+        elif word == 'being':
+            # vbg +beg +aux +xvbg + present progressive verb + being + auxiliary verb
+            biber_tag[0] = 'vbg'
+            biber_tag[1] = 'bg'
+            biber_tag[3] = 'xvbg'
+
+        # IF STRING IS NOT PASSED AS ARGUMENT
+
+        elif type(word) != str:
+            raise TextError('Argument of Text.be_aux_tag() must be str.')
+
+        return biber_tag
 
     def write(self, file_name, header='', encoding='UTF-8', errors='ignore', keep_claws=True):
         """
