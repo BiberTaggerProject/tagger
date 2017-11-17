@@ -182,6 +182,7 @@ class Text:
         verb determind by parser_config['passive_range']"""
         existential_there_ind = None
 
+
         for i, (word, tag, biber_tags) in enumerate(sent):
 
             # the presence of existential there is used later to distinguish between a passive yes/no question and
@@ -190,7 +191,7 @@ class Text:
                 existential_there_ind = i
 
             # Finds be-verb
-            if tag[:2] == 'VB':
+            if tag[:2] == 'VB' or word.lower() in ['get', 'gets', 'got', 'gotten']:
                 sent_tail_tags = self.sent_tails(sent,
                                                  i,
                                                  tail_length=self.parser_config['passive_range'],
@@ -216,7 +217,6 @@ class Text:
                         pass
 
                     # matches post-nominal modifier -- tags added in for-loop below in case there are multiple main verbs
-                    # todo: account for mistagging of inversion in passive yes/no questions e.g. were the groups treated equally?
                     elif len(aux_mv_gap_tags[-1]) > 1 and aux_mv_gap_tags[-1][0] == 'N':
                         # PROBLEM: It is difficult to distinguish between (a) a post-nominal modifier in a question
                         # and (b) a question in passive voice.
@@ -284,6 +284,11 @@ class Text:
                             sent[mvi][2][0] = 'vpsv'
                             sent[mvi][2][2] = 'agls'
                             sent[mvi][2][3] = 'xvbn'
+
+                    if word.lower() in ['get', 'gets', 'got', 'gotten']:
+                        print(word, sent[main_verb_i[0]][0])
+
+
         return sent
 
     def proper_nouns(self, sent):
