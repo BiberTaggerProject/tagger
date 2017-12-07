@@ -6,6 +6,7 @@ They are not part of the tagger.
 from corpus import Corpus
 from text import Text
 from collections import defaultdict
+import re
 
 
 class CorpusTester(Corpus):
@@ -28,6 +29,10 @@ class CorpusTester(Corpus):
             a = t.parse()
 
 
+
+
+
+
 class BiberCorpus(Corpus):
     nouns = ['nn++++', 'nn+nom+++', 'nvbg+++xvbg+', 'nn+++xvbn+', 'nns++++',
              'nns+nom+++', 'nnu++++', 'np++++', 'nps++++', 'npl++++', 'npt++++', 'npts++++',
@@ -38,19 +43,59 @@ class BiberCorpus(Corpus):
                 'pp3+pp3+++', 'pp$+pp3+++', 'ppl+pp3+++', 'ppls+pp3+++', 'pp3+it+++', 'pp$+it+++',
                 'pp$$++++', 'pn"++++', 'pn++++']
 
+
     def __init__(self, folder, filter_files=True):
-        super().__init__(folder)
+        super().__init__(folder, encoding_in='ascii')
 
         if filter_files:
             # If using the Longman Corpus, this excludes untagged and old directories
             self.files = [f for f in self.files if 'Old' not in f and 'Tagd' in f]
+
+    def tagset(self, freqs=False):
+        """Returns a set of tags in a corpus."""
+        all_tags = []
+
+        if freqs:
+            freq_dist = defaultdict(int)
+
+
+        for file in self.files:
+            with open(file, encoding=self.encoding_in, errors="ignore") as f:
+                text = f.read().splitlines()
+
+            text_tags = []
+
+            for i, line in enumerate(text):
+                # Skips metadata
+                if not line or line[0] == '{':
+                    continue
+
+                line = line.strip().split(' ')
+                # Regexp makes this super slow but couldn't think of a better way to exclude tags with unicode decode errors
+                if len(line) != 2 or line[1][0] != '^' \
+                    or not re.match("^[a-z0-9\.\,\+\-\!\@\#\$\%\^\&\*\(\)\_\[\]\:\;\"\'\<\>\?\`\=]*$", line[1][1:], re.IGNORECASE):
+                    continue
+
+                if freqs:
+                    freq_dist[line[1][1:]] += 1
+                else:
+                    text_tags.append(line[1][1:])
+
+            all_tags += text_tags
+            all_tags = list(set(all_tags))
+
+        if freqs:
+            return freq_dist
+        else:
+            return set(all_tags)
+
 
     def word_list(self, tag):
         """Returns types that have the given tag."""
         matches = self.find(tag, before=0, after=0, printing=False)
         return set(item[0].lower().split()[0] for item in matches)
 
-    def find(self, tag, encoding='UTF-8', encoding_errors='ignore', before=5, after=5, printing=True):
+    def find(self, tag,  encoding_errors='ignore', before=5, after=5, printing=True):
         """
         Searches through Biber tagged texts and prints results with tags matching `tag`
 
@@ -82,7 +127,7 @@ class BiberCorpus(Corpus):
         results = []
 
         for file in self.files:
-            with open(file, encoding=encoding, errors=encoding_errors) as f:
+            with open(file, encoding=self.encoding_in, errors=encoding_errors) as f:
                 text = f.read().splitlines()
 
             for i, line in enumerate(text):
@@ -92,7 +137,7 @@ class BiberCorpus(Corpus):
 
                 line = line.split(' ^')
 
-                if len(line) >= 2 and tag == line[1]:
+                if len(line) >= 2 and tag == line[1][:len(tag)]:
                     b_ind = i - before
 
                     if before < 0:
@@ -108,7 +153,34 @@ class BiberCorpus(Corpus):
         if not printing:
             return results
 
-    def lex_freq(self, *tags, encoding='UTF-8', encoding_errors='ignore'):
+    def tag_freq(self, token, encoding_errors='ignore'):
+        """Returns conditional frequency distribution of tag based on token"""
+        freq_dist = defaultdict(int)
+
+        for file in self.files:
+            with open(file, encoding=self.encoding_in, errors=encoding_errors) as f:
+                text = f.read().splitlines()
+
+            for i, line in enumerate(text):
+                # Skips metadata
+                if not line or line[0] == '{':
+                    continue
+
+                line = line.split(' ^')
+
+                # Makes sure there is really a token tag pair
+                if len(line) < 2:
+                    continue
+
+                w, t = line[0].lower(), line[1].strip()
+
+                if token.lower() == w.lower():
+                    freq_dist[t] += 1
+
+        return freq_dist
+
+
+    def lex_freq(self, *tags, encoding_errors='ignore', partial_tag_keys=False):
         """
         Returns conditional frequency distribution of words based on the beginning of * tags.
         
@@ -116,6 +188,11 @@ class BiberCorpus(Corpus):
         
         >>> bc = BiberCorpus('/home/mike/corpora/Longman Spoken and Written Corpus (FOR GRAMMAR PROJECT USE ONLY!)')
         >>> fd = bc.lex_freq('vwbn', 'vpsv')
+        
+        Arguments:
+            *tags: tags to use in the search
+        Keyword Arguments:
+            encoding: encoding of input files
         """
         freq_dist = {}
         tags = list(tags)
@@ -127,7 +204,7 @@ class BiberCorpus(Corpus):
 
 
         for file in self.files:
-            with open(file, encoding=encoding, errors=encoding_errors) as f:
+            with open(file, encoding=self.encoding_in, errors=encoding_errors) as f:
                 text = f.read().splitlines()
 
             for i, line in enumerate(text):
@@ -146,18 +223,26 @@ class BiberCorpus(Corpus):
                 for tag in tags:
                     if tag == t[:len(tag)]:
 
-                        if not freq_dist.get(w, False):
-                            freq_dist[w] = {tg: 0 for tg in tags}
+                        # Adds tag from arg as key
+                        if partial_tag_keys:
+                            if not freq_dist.get(w, False):
+                                freq_dist[w] = {tg.strip(): 0 for tg in tags}
+                            freq_dist[w][tag.strip()] += 1
+                        # Adds tag from token-tag dyad as key
+                        else:
+                            if not freq_dist.get(w, False):
+                                freq_dist[w] = {t.strip(): 0}
+                            elif not freq_dist[w].get(t.strip(), False):
+                                freq_dist[w][t.strip()] = 0
 
-                        freq_dist[w][tag] += 1
-                        print(w, t, file)
+                            freq_dist[w][t.strip()] += 1
 
         return freq_dist
 
 
 
 
-    def find_in_sent(self, tags, encoding='UTF-8', encoding_errors='ignore'):
+    def find_in_sent(self, tags, encoding_errors='ignore'):
 
         for i, tag in enumerate(tags):
             if tag[0] == '^':
@@ -170,7 +255,7 @@ class BiberCorpus(Corpus):
         sent_count = 0
 
         for file in self.files:
-            with open(file, encoding=encoding, errors=encoding_errors) as f:
+            with open(file, encoding=self.encoding_in, errors=encoding_errors) as f:
                 text = f.read().splitlines()
 
             for i, line in enumerate(text):

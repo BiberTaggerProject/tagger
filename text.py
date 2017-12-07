@@ -314,6 +314,7 @@ class Text:
             match = self.lexicon['basic_features'].get(tag, False)
 
             if match:
+                print(tag)
                 for biber_tag, ind in match:
                     sent[i][2][ind] = biber_tag
 
