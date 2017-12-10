@@ -127,7 +127,13 @@ basic_features = {
 
     'NNO': (('cd1', 0),),                   # cardinal number (numeral noun neutral for number in CLAWS)    cd++++
     #NNO2 does not cover the full range of plural cardinal numbers.
-    'NNO2': (('cds'), 0),                   # plural cardinal number (plural numeral noun in CLAWS)         cd+++
+    'NNO2': (('cds', 0),),                   # plural cardinal number (plural numeral noun in CLAWS)         cd+++
+
+    'ZZ1': (('zz', 0),),                    # singular letter of the alphabet   zz++++
+    'ZZ2': (('zz', 0),),                    # plural letter of the alphabet     zz++++
+
+    ### PREPOSITIONS ###
+    'TO': (('to', 0),),                     # infinitive marker     to++++
 
     ### SUBORDINATORS ###
 
@@ -141,6 +147,7 @@ basic_features = {
 
     'FW': (('&fw', 0),),                    # foreign word  &fw++++
     'GE': (('$', 0),),                      # genitive s    $++++
+    'UH': (('uh', 0),),                     # interjection  uh++++
 
 
 
