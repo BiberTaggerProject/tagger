@@ -1,5 +1,12 @@
 import basic_features as bf
 
+
+# Used to match single words with a tag
+token_match = {
+        "not":  (('xnot', 0), ('not', 2)),
+        "n't":  (('xnot', 0), ('not', 2), ('0', 4)),
+    }
+
 lexicon = {
 
     'basic_features': bf.basic_features,

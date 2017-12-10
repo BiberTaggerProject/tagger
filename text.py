@@ -31,9 +31,11 @@ class Text:
     }
 
     lexicon = lx.lexicon
+    token_match = lx.token_match
 
     def __init__(self, filepath, register='written', encoding='UTF-8', open_errors='ignore', lowercase=False):
-        self.parsers = [self.phrasal_verbs, self.passives, self.proper_nouns, self.basic_features, self.modal_nec]
+        self.parsers = [self.phrasal_verbs, self.passives, self.proper_nouns, self.basic_features, self.modal_nec,
+                        self.lexical_match]
         self.register = register
         self.filepath = filepath
 
@@ -180,6 +182,11 @@ class Text:
     def passives(self, sent):
         """Appends tags to auxilliary and main verbs in passive verb phrases. Gap allowed between auxilliary and main 
         verb determind by parser_config['passive_range']"""
+
+        # doesn't proceed if there is no chance of there being a passive
+        if 'VVN' not in set(t for w, t, bt in sent):
+            return sent
+
         existential_there_ind = None
 
 
@@ -254,9 +261,6 @@ class Text:
                         elif aux_mv_gap_tags.index('VB') < aux_mv_gap_tags.index('VH'):
                             continue
 
-                    # Adds tags to aux. verb (current index in sent)
-
-                    sent[i][2] = self.be_aux_tag(word)
 
                     # Adds tags to main verbs (ahead of current index in sent)
                     for mvi in main_verb_i:
@@ -267,6 +271,9 @@ class Text:
                             sent[mvi][2][0] = 'vwbn'
                             sent[mvi][2][3] = 'xvbn'
 
+                            if 'that' not in [w.lower() for w, t, bt in sent[i:mvi]]:
+                                sent[mvi][2][2] = 'tht0'
+
                             # assigns additional tag if main verb is in 1 of 3 semantic domains of PNMs
                             # public, private, or suasive
                             for semantic_domain in self.lexicon['vwbn']:
@@ -274,19 +281,58 @@ class Text:
                                     sent[mvi][2][1] = semantic_domain
                                     break
 
+
                         elif 'by' in sent_tail_words:
                             # vpsv++by+xvbn+    main clause passive verb + + by passive
                             sent[mvi][2][0] = 'vpsv'
                             sent[mvi][2][2] = 'by'
                             sent[mvi][2][3] = 'xvbn'
+
+                            # Adds tags to aux. verb (current index in sent)
+                            sent[i][2] = self.be_aux_tag(word)
+
+
                         else:
                             # vpsv++agls+xvbn+  main clause passive verb + + agentless passive
                             sent[mvi][2][0] = 'vpsv'
                             sent[mvi][2][2] = 'agls'
                             sent[mvi][2][3] = 'xvbn'
 
-                    if word.lower() in ['get', 'gets', 'got', 'gotten']:
-                        print(word, sent[main_verb_i[0]][0])
+                            # Adds tags to aux. verb (current index in sent)
+                            sent[i][2] = self.be_aux_tag(word)
+
+
+            # Checks for passive post-nominal modifiers after nouns that do not already have a BT added
+            # VVD will sometimes be tagged as VVN in CLAWS and mess this up.
+            elif tag[0] == 'N' \
+                and not [bt for w, t, bt in sent[i+1:i+self.parser_config['passive_range']] if bt[0] in ['vpsv', 'vwbn']]:
+
+                sent_tail_tags = self.sent_tails(sent,
+                                                 i,
+                                                 tail_length=self.parser_config['passive_range'],
+                                                 entity='tags')
+
+                banned_tags = 'N', 'V'
+
+                if 'VVN' in sent_tail_tags and  not [t[0] for t in sent_tail_tags if t[0] in banned_tags and t != 'VVN']:
+                    main_verb_i = [i + n + 1 for n, elem in enumerate(sent_tail_tags) if elem == 'VVN']
+
+
+                    for mvi in main_verb_i:
+                        # vwbn+++xvbn+      passive postnominal modifier + + + past participle form
+                        # Shouldn't these be able to have a by or agls tag too?
+                        sent[mvi][2][0] = 'vwbn'
+                        sent[mvi][2][3] = 'xvbn'
+
+                        if 'that' not in [w.lower() for w,t,bt in sent[i:mvi]]:
+                            sent[mvi][2][2] = 'tht0'
+
+                        # assigns additional tag if main verb is in 1 of 3 semantic domains of PNMs
+                        # public, private, or suasive
+                        for semantic_domain in self.lexicon['vwbn']:
+                            if sent[mvi][0].lower() in self.lexicon['vwbn'][semantic_domain]:
+                                sent[mvi][2][1] = semantic_domain
+                                break
 
 
         return sent
@@ -303,6 +349,23 @@ class Text:
 
         return sent
 
+    def lexical_match(self, sent):
+
+        for i, (word, tag, biber_tag) in enumerate(sent):
+
+            # only matches if there is not already a biber tag for the word
+            if not [b for b in biber_tag if b]:
+                # In token_match, keys are strings representing words
+                # This could be the most efficient way, but it could require a lot of data entry
+                match = self.token_match.get(word.lower(), False)
+
+                if match:
+                    for bt, ind in match:
+                        sent[i][2][ind] = bt
+                    print(sent)
+
+        return sent
+
     def basic_features(self, sent):
         """
         Adds Biber tags are easy to match with CLAWS tags by finding them in  self.parser_config['basic_features'].
@@ -310,13 +373,15 @@ class Text:
         proper_nouns() should be added to this eventually, but I haven't put it in so that it can serve as a basic
         example of how Text() works.
         """
-        for i, (word, tag, biber_tags) in enumerate(sent):
-            match = self.lexicon['basic_features'].get(tag, False)
+        for i, (word, tag, biber_tag) in enumerate(sent):
 
-            if match:
-                print(tag)
-                for biber_tag, ind in match:
-                    sent[i][2][ind] = biber_tag
+            # only matches if there is not already a biber tag for the word
+            if not [b for b in biber_tag if b]:
+                match = self.lexicon['basic_features'].get(tag, False)
+
+                if match:
+                    for bt, ind in match:
+                        sent[i][2][ind] = bt
 
         return sent
 
