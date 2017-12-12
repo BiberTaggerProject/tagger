@@ -1,8 +1,10 @@
 from itertools import chain
 from re import split
 from collections import defaultdict
-import lexicon as lx
 
+import lexicon as lx
+import claws_replacements as cp
+import basic_features as bf
 from errors import TextError
 
 class Text:
@@ -30,12 +32,24 @@ class Text:
         'passive_range': 4
     }
 
-    lexicon = lx.lexicon
-    token_match = lx.token_match
+    # dicts with lexical and tag information used in methods
+    lexicon_dict = lx.lexicon
+    token_match_dict = lx.token_match
+    basic_features_dict = bf.basic_features
+    claws_replacements_dict = cp.replacements
 
     def __init__(self, filepath, register='written', encoding='UTF-8', open_errors='ignore', lowercase=False):
-        self.parsers = [self.phrasal_verbs, self.passives, self.proper_nouns, self.basic_features, self.modal_nec,
+
+        # The methods in this list will be applied to every sentence in the text when Text().parse() is called.
+        self.parsers = [self.replace_in_claws,
+                        self.phrasal_verbs,
+                        self.passives,
+                        self.proper_nouns,
+                        self.basic_features,
+                        self.modal_nec,
                         self.lexical_match]
+
+        # register is not used for anything yet
         self.register = register
         self.filepath = filepath
 
@@ -183,9 +197,7 @@ class Text:
         """Appends tags to auxilliary and main verbs in passive verb phrases. Gap allowed between auxilliary and main 
         verb determind by parser_config['passive_range']"""
 
-        # doesn't proceed if there is no chance of there being a passive
-        if 'VVN' not in set(t for w, t, bt in sent):
-            return sent
+        #todo account for VDN (done) and VHN (had) tags
 
         existential_there_ind = None
 
@@ -247,7 +259,7 @@ class Text:
 
                                 # tags as vwbn if the main verb is in a set of words from Longman that occur more frequently
                                 # as vwbn than as vpsv
-                                elif sent[main_verb_i[0]][0].lower() in self.lexicon['vwbn_gt_vpsv']:
+                                elif sent[main_verb_i[0]][0].lower() in self.lexicon_dict['vwbn_gt_vpsv']:
                                     post_nominal_modifier = True
 
                             else:
@@ -276,8 +288,8 @@ class Text:
 
                             # assigns additional tag if main verb is in 1 of 3 semantic domains of PNMs
                             # public, private, or suasive
-                            for semantic_domain in self.lexicon['vwbn']:
-                                if sent[mvi][0].lower() in self.lexicon['vwbn'][semantic_domain]:
+                            for semantic_domain in self.lexicon_dict['vwbn']:
+                                if sent[mvi][0].lower() in self.lexicon_dict['vwbn'][semantic_domain]:
                                     sent[mvi][2][1] = semantic_domain
                                     break
 
@@ -329,8 +341,8 @@ class Text:
 
                         # assigns additional tag if main verb is in 1 of 3 semantic domains of PNMs
                         # public, private, or suasive
-                        for semantic_domain in self.lexicon['vwbn']:
-                            if sent[mvi][0].lower() in self.lexicon['vwbn'][semantic_domain]:
+                        for semantic_domain in self.lexicon_dict['vwbn']:
+                            if sent[mvi][0].lower() in self.lexicon_dict['vwbn'][semantic_domain]:
                                 sent[mvi][2][1] = semantic_domain
                                 break
 
@@ -355,14 +367,13 @@ class Text:
 
             # only matches if there is not already a biber tag for the word
             if not [b for b in biber_tag if b]:
-                # In token_match, keys are strings representing words
+                # In token_match_dict, keys are strings representing words
                 # This could be the most efficient way, but it could require a lot of data entry
-                match = self.token_match.get(word.lower(), False)
+                match = self.token_match_dict.get(word.lower(), False)
 
                 if match:
                     for bt, ind in match:
                         sent[i][2][ind] = bt
-                    print(sent)
 
         return sent
 
@@ -377,7 +388,7 @@ class Text:
 
             # only matches if there is not already a biber tag for the word
             if not [b for b in biber_tag if b]:
-                match = self.lexicon['basic_features'].get(tag, False)
+                match = self.basic_features_dict.get(tag, False)
 
                 if match:
                     for bt, ind in match:
@@ -391,13 +402,13 @@ class Text:
 
         for i, (word, tag, biber_tags) in enumerate(sent):
 
-            if ([word.lower()] in self.lexicon['necessity_modals'] and tag[0] == 'VM') \
+            if ([word.lower()] in self.lexicon_dict['necessity_modals'] and tag[0] == 'VM') \
                     or (word.lower() == 'better' and tag[0:2] =='VV'):
                 sent[i][2][0] = 'md'
                 sent[i][2][1] = 'nec'
 
             else:
-                for nec_modal in self.lexicon['necessity_modals']:
+                for nec_modal in self.lexicon_dict['necessity_modals']:
                     if (len(nec_modal) > 2 and nec_modal[0] == word.lower() and nec_modal[1:] in sent_bigrams[i+1:i+3])\
                         or (i < len(sent) - 1 and len(nec_modal) == 2 and nec_modal[0] == word.lower() and nec_modal[1] == sent[i+1][0].lower()):
 
@@ -410,6 +421,12 @@ class Text:
                             sent[i + n][2][0] = 'md'
                             sent[i + n][2][1] = 'nec'
 
+        return sent
+
+    def replace_in_claws(self, sent):
+        """Replaces claws tags based on dictionary key matches in self.claws_replacements."""
+        for i, (word, tag, biber_tag) in enumerate(sent):
+            sent[i][1] = self.claws_replacements_dict.get(tag, tag)
         return sent
 
     @staticmethod
