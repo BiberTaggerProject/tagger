@@ -7,6 +7,7 @@ from corpus import Corpus
 from text import Text
 from collections import defaultdict
 import re
+import time
 
 
 class CorpusTester(Corpus):
@@ -24,10 +25,11 @@ class CorpusTester(Corpus):
     """
 
     def dry_run(self):
+        tm = time.time()
         for file in self.files:
             t = Text(file)
             a = t.parse()
-
+        print(time.time() - tm)
 
 
 
