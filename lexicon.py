@@ -3,13 +3,15 @@ import basic_features as bf
 
 # Used to match single words with a tag
 token_match = {
-        "not":  (('xnot', 0), ('not', 2)),
-        "n't":  (('xnot', 0), ('not', 2), ('0', 4)),
+        'not':  (('xnot', 0), ('not', 2)),                  # xnot++not++
+        "n't":  (('xnot', 0), ('not', 2), ('0', 4)),        # xnot++not++0
+        # Should go through tagging methods for passives and perfect before going through lexical_match()
+        # 'done': (('xvbn', 0), ('xvbn', 3))                  # past part. w/ indeterminte function xvbn+++xvbn+
     }
 
 lexicon = {
 
-    'basic_features': bf.basic_features,
+    # might be more effient to do matches like this with nested dicts
 
     'necessity_modals': [['must'], ['should'], ['had', 'better'], ["'d", 'better'], ['better'], ['have', 'to'],
                          ['need', 'to'], ['ought', 'to'], ["'s", 'got', 'to'], ["'ve", 'got', 'to'],
