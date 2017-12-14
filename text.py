@@ -3,8 +3,10 @@ from re import split
 from collections import defaultdict
 
 import lexicon as lx
-import claws_replacements as cp
-import tag_match as tm
+import claws_replacements as cr
+import tag_match as tagm
+import token_match as tokm
+import token_tag_match as toktagm
 from errors import TextError
 
 class Text:
@@ -34,9 +36,10 @@ class Text:
 
     # dicts with lexical and tag information used in methods
     lexicon_dict = lx.lexicon
-    token_match_dict = lx.token_match
-    tag_match_dict = tm.tag_match
-    claws_replacements_dict = cp.replacements
+    token_match_dict = tokm.token_match
+    tag_match_dict = tagm.tag_match
+    token_tag_match_dict = toktagm.token_tag_match
+    claws_replacements_dict = cr.replacements
 
     def __init__(self, filepath, register='written', encoding='UTF-8', open_errors='ignore', lowercase=False):
 
@@ -45,9 +48,8 @@ class Text:
                         self.phrasal_verbs,
                         self.passives,
                         self.proper_nouns,
-                        self.tag_match,
                         self.modal_nec,
-                        self.lexical_match]
+                        self.basic_matcher]
 
         # register is not used for anything yet
         self.register = register
@@ -361,24 +363,8 @@ class Text:
 
         return sent
 
-    def lexical_match(self, sent):
-        """Uses token_match_dict to assign biber tags to tokens."""
 
-        for i, (word, tag, biber_tag) in enumerate(sent):
-
-            # only matches if there is not already a biber tag for the word
-            if not [b for b in biber_tag if b]:
-                # In token_match_dict, keys are strings representing words
-                # This could be the most efficient way, but it could require a lot of data entry
-                match = self.token_match_dict.get(word.lower(), False)
-
-                if match:
-                    for bt, ind in match:
-                        sent[i][2][ind] = bt
-
-        return sent
-
-    def tag_match(self, sent):
+    def basic_matcher(self, sent):
         """
         Assigns a biber tag based on CLAWS tag. Matches are based on keys and values in self.tag_match_dict.
         
@@ -389,11 +375,26 @@ class Text:
 
             # only matches if there is not already a biber tag for the word
             if not [b for b in biber_tag if b]:
-                match = self.tag_match_dict.get(tag, False)
+                tag_val = self.tag_match_dict.get(tag, False)
 
-                if match:
-                    for bt, ind in match:
+                if tag_val:
+                    for bt, ind in tag_val:
                         sent[i][2][ind] = bt
+                    continue
+
+                token_val = self.token_match_dict.get(word.lower(), False)
+
+                if token_val:
+                    for bt, ind in token_val:
+                        sent[i][2][ind] = bt
+                    continue
+
+                token_tag_val = self.token_tag_match_dict.get((word.lower(), tag), False)
+
+                if token_tag_val:
+                    for bt, ind in token_tag_val:
+                        sent[i][2][ind] = bt
+                        print(sent[i])
 
         return sent
 
