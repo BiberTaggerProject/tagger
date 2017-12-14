@@ -14,7 +14,7 @@ Please leave an in-line comment for each tag that
     (b) shows what the biber tag will look like as a string
 """
 
-basic_features = {
+tag_match = {
 
     ### PUNCTUATION ###
     # todo: CLAWS does not split -, $, and % into tokens but it seems that the biber tagger does. Decide if this is a feature worth preserving.

@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import lexicon as lx
 import claws_replacements as cp
-import basic_features as bf
+import tag_match as tm
 from errors import TextError
 
 class Text:
@@ -35,7 +35,7 @@ class Text:
     # dicts with lexical and tag information used in methods
     lexicon_dict = lx.lexicon
     token_match_dict = lx.token_match
-    basic_features_dict = bf.basic_features
+    tag_match_dict = tm.tag_match
     claws_replacements_dict = cp.replacements
 
     def __init__(self, filepath, register='written', encoding='UTF-8', open_errors='ignore', lowercase=False):
@@ -45,7 +45,7 @@ class Text:
                         self.phrasal_verbs,
                         self.passives,
                         self.proper_nouns,
-                        self.basic_features,
+                        self.tag_match,
                         self.modal_nec,
                         self.lexical_match]
 
@@ -362,6 +362,7 @@ class Text:
         return sent
 
     def lexical_match(self, sent):
+        """Uses token_match_dict to assign biber tags to tokens."""
 
         for i, (word, tag, biber_tag) in enumerate(sent):
 
@@ -377,9 +378,9 @@ class Text:
 
         return sent
 
-    def basic_features(self, sent):
+    def tag_match(self, sent):
         """
-        Adds Biber tags are easy to match with CLAWS tags by finding them in  self.parser_config['basic_features'].
+        Assigns a biber tag based on CLAWS tag. Matches are based on keys and values in self.tag_match_dict.
         
         proper_nouns() should be added to this eventually, but I haven't put it in so that it can serve as a basic
         example of how Text() works.
@@ -388,7 +389,7 @@ class Text:
 
             # only matches if there is not already a biber tag for the word
             if not [b for b in biber_tag if b]:
-                match = self.basic_features_dict.get(tag, False)
+                match = self.tag_match_dict.get(tag, False)
 
                 if match:
                     for bt, ind in match:
@@ -434,11 +435,11 @@ class Text:
         """
         Returns biber tag corresponding to the token of `to be` as an auxilliary verb. 
         
-        Can only be used if it is already known that a verb is an aux verb. Therefore, within this class, it should
-        only be used in the methods tagging for passive voice and progressive aspect.
+        Can only be used if it is already known that a verb is an aux verb. Therefore, within Text, this method should
+        only be called by the methods tagging for passive voice, perfect aspect, and progressive aspect.
         
         Arguments:
-            word: a string representing a token that is already known to be auxilliary `to be` 
+            word: a string representing a token that is already known to be auxilliary `be` 
         """
 
         biber_tag = ['', '', '', '', '']

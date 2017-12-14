@@ -1,4 +1,4 @@
-import basic_features as bf
+import tag_match as bf
 
 
 # Used to match single words with a tag
