@@ -366,8 +366,13 @@ class Text:
 
     def basic_matcher(self, sent):
         """
-        Assigns a biber tag based on CLAWS tag. Matches are based on keys and values in self.tag_match_dict.
-        
+        Assigns a biber tag based on CLAWS tag, token, or tuple consisting of token and CLAWS tag.
+
+        Tags are assigned based on keys and values in:
+            self.token_tag_match_dict
+            self.token_match_dict
+            self.tag_match_dict
+
         proper_nouns() should be added to this eventually, but I haven't put it in so that it can serve as a basic
         example of how Text() works.
         """
