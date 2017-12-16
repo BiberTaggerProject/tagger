@@ -4,6 +4,12 @@ Used to match token-tag pairs with a tag.
 
 token_tag_match = {
 
+        ### Determiners ###
+
+        ## possessive determiners ##
+
+        ('her', 'APPGE'): (('pp$', 0), ('pp3', 1)),             # pp$+pp3+++
+
         ### Modals ###
 
         # modals that aren't homographs with other POSs are in token_match

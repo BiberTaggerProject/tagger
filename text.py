@@ -34,6 +34,9 @@ class Text:
         'passive_range': 4
     }
 
+    # Determines how many tag fields there will be in Biber tag output
+    tag_field_n = 6
+
     # dicts with lexical and tag information used in methods
     lexicon_dict = lx.lexicon
     token_match_dict = tokm.token_match
@@ -123,7 +126,7 @@ class Text:
             # Adds list that will contain biber tags to each element in sent
             # If this is done another way, then replace the value of parsed_sent below with copy.deepcopy(sent)
             # Otherwise parsed_sent will be a pointer to sent, even if [:] is used, because of its embedded lists
-            parsed_sent = tuple(element + [['', '', '', '', '']] for element in sent)
+            parsed_sent = tuple(element + [['' for i in range(self.tag_field_n)]] for element in sent)
             for parser in self.parsers:
                 parsed_sent = parser(parsed_sent)
 
@@ -399,7 +402,6 @@ class Text:
                 if token_tag_val:
                     for bt, ind in token_tag_val:
                         sent[i][2][ind] = bt
-                        print(sent[i])
 
         return sent
 
@@ -436,8 +438,7 @@ class Text:
             sent[i][1] = self.claws_replacements_dict.get(tag, tag)
         return sent
 
-    @staticmethod
-    def be_aux_tag(word):
+    def be_aux_tag(self, word):
         """
         Returns biber tag corresponding to the token of `to be` as an auxilliary verb. 
         
@@ -448,7 +449,7 @@ class Text:
             word: a string representing a token that is already known to be auxilliary `be` 
         """
 
-        biber_tag = ['', '', '', '', '']
+        biber_tag = ['' for i in range(self.tag_field_n)]
         word = word.lower()
 
         biber_tag[2] = 'aux'
