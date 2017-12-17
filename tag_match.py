@@ -19,17 +19,17 @@ tag_match = {
     ### PUNCTUATION ###
     # todo: CLAWS does not split -, $, and % into tokens but it seems that the biber tagger does. Decide if this is a feature worth preserving.
 
-    ',': ((',', 0),),                       # ,     ,++++
-    ';': ((';', 0), ('clp', 1)),            # ;     ;+clp+++
-    ':': ((':', 0), ('clp', 1)),            # :     :+clp+++
-    '?': (('?', 0), ('clp', 1)),            # ?     ?+clp+++
-    '!': (('!', 0), ('clp', 1)),            # !     !+clp+++
-    '.': (('.', 0), ('clp', 1)),            # .     .+clp+++
-    '(': (('(', 0),),                       # (     (++++
-    ')': ((')', 0),),                       # )     )++++
-    '"': (('"', 0),),                       # "     "++++
-    "'": (("'", 0),),                       # '     '++++
-    '-': (('-', 0),),                       # -     -++++
+    ',': (('Y', 0), ('COM', 1)),            # ,     Y+COM++++
+    ';': (('Y', 0), ('SCOL', 1)),           # ;     Y+SCOL++++
+    ':': (('Y', 0), ('COL', 1)),            # :     Y+COL++++
+    '?': (('Y', 0), ('QUE', 1)),            # ?     Y+QUE++++
+    '!': (('Y', 0), ('EXCL', 1)),           # !     Y+EXCL++++
+    '.': (('Y', 0), ('PER', 1)),            # .     Y+PER++++
+    '(': (('Y', 0), ('PAR', 1), ('L', 2)),  # (     Y+PAR+L+++
+    ')': (('Y', 0), ('PAR', 2), ('R', 2)),  # )     Y+PAR+R+++
+    "'": (("Y", 0), ('APO', 1)),            # "     Y+APO++++
+    '"': (("Y", 0), ('QUO', 1)),            # '     Y+QUO++++
+    '-': (('Y', 0), ('DSH', 1)),            # -     Y+DSH++++
 
     ### DETERMINERS ###
 
@@ -137,10 +137,10 @@ tag_match = {
 
     ### SUBORDINATORS ###
 
-    'CSA': (('cs', 0),),                    # as as a subordinator/conjunction      cs++++
-    'CST': (('cs', 0),),                    # that as a subordinator/conjunction    cs++++
-    'CSN': (('cs', 0),),                    # than as a subordinator/conjunction    cs++++
-    'CSW': (('cs', 0), ('who', 1)),         # whether as a subordinator/conjunction cs+who+++
+    'CSA': (('C', 0), ('S', 1)),                    # as as a subordinator/conjunction      cs++++
+    'CST': (('C', 0), ('S', 1)),                    # that as a subordinator/conjunction    cs++++
+    'CSN': (('C', 0), ('S', 1)),                    # than as a subordinator/conjunction    cs++++
+    'CSW': (('C', 0),  ('S', 1), ('WH', 2)),         # whether as a subordinator/conjunction cs+who+++
 
 
     ### MISCELLANEOUS ###
