@@ -176,17 +176,34 @@ class Text:
 
     def extraposition(self, sent):
         """Finds extraposed clauses"""
+        # todo: decide what words in the phrase to tag -- Right now it just tags dummy it
+        # todo: look into if "whether" can be a complementizer and, if it can, adjust conditional statements to match whole tag instead of just "CS" to exclude sentences as ECs
+
+        """
+        Notable errors:
+        
+        THAT DEL ['It', "'s", 'right', 'there', 'for', 'everyone', 'to', 'read', '.']      
+        CLAWS7's Fault -- THAT DEL ['it_PPH1', 'were_VBDR', 'really_RR', 'a_RR31', 'great_RR32', 'deal_RR33', 'more_RGR', 'convenient_JJ', 'to_TO', 'do_VDI', 'so_RR', 'than_CSN', 'to_TO', 'deal_VVI', 'with_IW', 'the_AT', 'police_NN2', 'and_CC', 'the_AT', 'insurance_NN1', 'companies_NN2', 'and_CC', 'all_DB', ',_,', 'well_RR', ',_,', 'then_RT', '..._...', 'maybe_RR', '._.', '<p>_NULL']        
+        Is this an error? -- [['it', 'PPH1', '+++++'], ['can', 'VM', '+++++'], ['seem', 'VVI', '+++++'], ['silly', 'JJ', '+++++'], ['to', 'TO', 'TO++++EXT+'], ['say', 'VVI', '+++++']
+
+        
+        """
 
         for i, (word, tag, biber_tags) in enumerate(sent):
 
             if word.lower() == 'it':
                 sent_tail = self.sent_tails(sent, i, 6)
+                # index in sent_tail of the verb controlling the extraposed clause
                 verb_match_i = None
+                # index in sent_tail of the adjective controlling the extraposed clause
                 adj_match_i = None
+                # adds tag if condition is met
+                apply_tag = False
 
                 for n, (tail_word, tail_tag, _) in enumerate(sent_tail):
+                    tail_word = tail_word.lower()
                     # matches lexical verbs
-                    if tail_word.lower() in self.lexicon_dict['extraposing_verbs']:
+                    if tail_word in self.lexicon_dict['extraposing_verbs']:
                         verb_match_i = n
 
                     # matches lexical 'be'
@@ -196,30 +213,83 @@ class Text:
                             verb_match_i = n
 
                     # matches adj after verb is matched
-                    elif verb_match_i is not None and tail_word.lower() in self.lexicon_dict['extraposing_adjectives']:
+                    elif verb_match_i is not None and tail_word in self.lexicon_dict['extraposing_adjectives']:
                         adj_match_i =  n
 
-                    # ends the loop -- either catches or ignores what comes after the adjective
-                    elif adj_match_i:
-                        # that-clause without that-deletion
-                        if tail_word.lower() == 'that':
-                            # todo: decide what words in the phrase to tag
-                            # P+IM+DUM+3+
-                            sent[i][2][0] = 'P'
-                            sent[i][2][1] = 'IM'
-                            sent[i][2][2] = 'DUM'
-                            sent[i][2][3] = '3'
-                            print('THAT PRES', [w for w, t, bt in sent[i:]])
+                    # breaks loop if determiner is before adj
+                    elif adj_match_i is None and tail_tag[0] in 'AD':
+                        break
 
-                        # that-clause with that-deletion
-                        elif tail_tag[0] in 'ADNJRMEPZ':
-                            # todo: decide what words in the phrase to tag
-                            # P+IM+DUM+3+
+                    # ends the loop -- either catches or ignores what comes after the adjective
+                    elif adj_match_i is not None:
+                        # index in sent of the adjective controlling the extraposed clause
+                        extraposed_clause_tags = self.sent_tails(sent, i + adj_match_i, 6, entity='tags')
+
+                        # breaks loop if no verb is within six words of the adjective controlling the extraposed clause
+                        if [t for t in extraposed_clause_tags if t[0] == 'V'] :
+
+                            # that-clause without that-deletion
+                            if tail_word == 'that':
+                                # P+IM+DUM+3+
+                                apply_tag = True
+                                # THT+++CLS+EX
+                                sent[i + n + 1][2][1] = 'THT'
+                                sent[i + n + 1][2][3] = 'CLS'
+                                sent[i + n + 1][2][4] = 'EXT'
+                                #print('THAT PRES', ' '.join(w for w, t, bt in sent[i:]))
+                                #print('THAT PRES', ' '.join(w+'_'+t for w, t, bt in sent[i:]))
+
+                            # wh-clause - what, how, where, why, which, whose, whom, and who as clause heads
+                            # todo: decide if this should include when, if, whether, or wh-ever words -- is when even possible as a clause head?
+                            elif tail_word in self.lexicon_dict['wh_complementizers']:
+                                apply_tag = True
+
+                                # Classifies what type of WH-word the complementizer is
+                                if tail_word == 'what' or tail_word == 'which':
+                                    # D+WH++CLS+EX
+                                    sent[i + n + 1][2][0] = 'D'
+                                elif tail_word == 'how' or tail_word == 'where' or tail_word == 'why':
+                                    # R+WH++CLS+EX
+                                    sent[i + n + 1][2][0] = 'R'
+                                elif tail_word == 'who' or tail_word == 'whom':
+                                    # P+WH++CLS+EX
+                                    sent[i + n + 1][2][0] = 'P'
+                                elif tail_word == 'whose':
+                                    # D+WH+GE+CLS+EX
+                                    sent[i + n + 1][2][0] = 'D'
+                                    sent[i + n + 1][2][2] = 'GE'
+
+                                # Adds to portion of the tag indicating tag is an extraposed wh clause complementizer
+                                sent[i + n + 1][2][1] = 'WH'
+                                sent[i + n + 1][2][3] = 'CLS'
+                                sent[i + n + 1][2][4] = 'EXT'
+                                #print('WHCOMP', [[w,'+'.join(bt)] for w, t, bt in sent[i:]])
+
+                            # to clause
+                            elif tail_word == 'to':
+                                # makes sure to is actually followed by infinitive verb
+                                if i + n + 1 < len(sent) - 1 and sent[i + n + 2][1][-1] == 'I':
+                                    apply_tag = True
+                                    sent[i + n + 1][2][0] = 'TO'
+                                    sent[i + n + 1][2][4] = 'EXT'
+                                    print('TO', [[w, t, '+'.join(bt)] for w, t, bt in sent[i:]])
+
+                            # that-clause with that-deletion -- checks that controlling adj is followed by Noun or Noun Pre-modifier
+                            # this should probably come last because some of the tags could overlap with lexical categories
+                            # in the if statements above
+                            elif tail_tag[0] in 'ADNJRMEPZ':
+                                # P+IM+DUM+3+
+                                apply_tag = True
+                                #print(tail_tag[0], 'THAT DEL', ' '.join(w for w, t, bt in sent[i:]))
+                                #print('THAT DEL', ' '.join(w+'_'+t for w, t, bt in sent[i:]))
+
+                        if apply_tag:
+                            # dummy it
                             sent[i][2][0] = 'P'
                             sent[i][2][1] = 'IM'
-                            sent[i][2][2] = 'DUM'
                             sent[i][2][3] = '3'
-                            print('THAT DEL', [w for w, t, bt in sent[i:]])
+                            sent[i][2][4] = 'EXT'
+
 
                         break
 

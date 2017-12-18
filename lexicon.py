@@ -1,6 +1,11 @@
 
 lexicon = {
 
+    # What to do with 'whether', 'if', wh-ever words?
+    'wh_complementizers': {
+      'what', 'who', 'how', 'why', 'where', 'which', 'whose', 'whom'
+    },
+
     'extraposing_verbs': {
         'appear', 'appears', 'appeared', 'appearing',
         #'be', 'am', "'m", 'is', "'s", 'are', "'re", 'been', 'being',
