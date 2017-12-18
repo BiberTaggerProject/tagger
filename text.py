@@ -48,6 +48,7 @@ class Text:
 
         # The methods in this list will be applied to every sentence in the text when Text().parse() is called.
         self.parsers = [self.replace_in_claws,
+                        self.extraposition,
                         self.phrasal_verbs,
                         self.passives,
                         self.proper_nouns,
@@ -172,6 +173,58 @@ class Text:
             return sent[start + 1:tail_length]
         else:
             return sent[start + 1:start + 1 + tail_length]
+
+    def extraposition(self, sent):
+        """Finds extraposed clauses"""
+
+        for i, (word, tag, biber_tags) in enumerate(sent):
+
+            if word.lower() == 'it':
+                sent_tail = self.sent_tails(sent, i, 6)
+                verb_match_i = None
+                adj_match_i = None
+
+                for n, (tail_word, tail_tag, _) in enumerate(sent_tail):
+                    # matches lexical verbs
+                    if tail_word.lower() in self.lexicon_dict['extraposing_verbs']:
+                        verb_match_i = n
+
+                    # matches lexical 'be'
+                    elif tail_tag[:2] == 'VB' and n < len(sent_tail) - 1:
+                        following_verbs = [w for w,t,_ in sent_tail[n+1:] if t[0] == 'V']
+                        if not following_verbs:
+                            verb_match_i = n
+
+                    # matches adj after verb is matched
+                    elif verb_match_i is not None and tail_word.lower() in self.lexicon_dict['extraposing_adjectives']:
+                        adj_match_i =  n
+
+                    # ends the loop -- either catches or ignores what comes after the adjective
+                    elif adj_match_i:
+                        # that-clause without that-deletion
+                        if tail_word.lower() == 'that':
+                            # todo: decide what words in the phrase to tag
+                            # P+IM+DUM+3+
+                            sent[i][2][0] = 'P'
+                            sent[i][2][1] = 'IM'
+                            sent[i][2][2] = 'DUM'
+                            sent[i][2][3] = '3'
+                            print('THAT PRES', [w for w, t, bt in sent[i:]])
+
+                        # that-clause with that-deletion
+                        elif tail_tag[0] in 'ADNJRMEPZ':
+                            # todo: decide what words in the phrase to tag
+                            # P+IM+DUM+3+
+                            sent[i][2][0] = 'P'
+                            sent[i][2][1] = 'IM'
+                            sent[i][2][2] = 'DUM'
+                            sent[i][2][3] = '3'
+                            print('THAT DEL', [w for w, t, bt in sent[i:]])
+
+                        break
+
+        return sent
+
 
     def phrasal_verbs(self, sent):
         """

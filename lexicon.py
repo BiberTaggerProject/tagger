@@ -1,7 +1,69 @@
 
 lexicon = {
 
-    # might be more effient to do matches like this with nested dicts
+    'extraposing_verbs': {
+        'appear', 'appears', 'appeared', 'appearing',
+        #'be', 'am', "'m", 'is', "'s", 'are', "'re", 'been', 'being',
+        'follow', 'follows', 'following', 'followed',
+        'seem', 'seems', 'seemed', 'seeming',
+        'show', 'shows', 'showed', 'showing', 'shown'
+    },
+
+    # pp. 672-673 in longman
+    'extraposing_adjectives': {
+        'clear', 'likely', 'unlikely', 'possible', 'impossible',
+        'true',
+
+        'accepted', 'apparent', 'certain', 'clear', 'correct',
+        'doubtful', 'evident', 'false', 'inevitable', 'likely',
+        'unlikely', 'obvious', 'plain', 'possible', 'impossible',
+        'probable', 'right', 'true', 'well-known',
+
+        'acceptable', 'unacceptable', 'amazing', 'anomalous',
+        'annoying', 'appropriate', 'astonishing', 'awful', 'inconceivable',
+        'conceivable', 'curious', 'disappointing',
+        'dreadful', 'embarrassing', 'extraordinary', 'unfortunate', 'fortunate',
+        'frightening', 'funny', 'good',
+        'great', 'horrible', 'incidental', 'incredible', 'indisputable',
+        'interesting', 'ironic', 'irritating',
+        'unlucky', 'lucky', 'natural', 'neat', 'nice', 'notable', 'noteworthy',
+        'noticeable', 'odd', 'okay',
+        'paradoxical', 'peculiar', 'preferable', 'ridiculous', 'sad',
+        'sensible', 'shocking', 'silly', 'strange',
+        'stupid', 'sufficient', 'surprising', 'tragic', 'untypical', 'typical',
+        'unfair', 'understandable', 'unthinkable', 'unusual',
+        'upsetting', 'wonderful',
+
+        'advisable', 'critical', 'crucial', 'desirable', 'essential',
+        'fitting', 'imperative', 'important', 'necessary', 'obligatory',
+        'vital'
+
+    },
+
+
+    'copular_verbs': {
+        'seem', 'seems', 'seemed', 'seeming',
+        'appear', 'appears', 'appeared', 'appearing',
+        'keep', 'keeps', 'kept', 'keeping',
+        'remain', 'remains', 'remained', 'remaining',
+        'stay', 'stays', 'stayed', 'staying',
+        'become', 'becomes', 'became', 'becoming',
+        'get', 'gets', 'got', 'getting', 'gotten',
+        'go', 'goes', 'went', 'going', 'gone',
+        'grow', 'grows', 'grew', 'growing', 'grown',
+        'prove', 'proves', 'proved', 'proving', 'proven',
+        'come', 'comes', 'came', 'coming',
+        'turn', 'turns', 'turned', 'turning',
+        'look', 'looks', 'looked', 'looking',
+        'sound', 'sounds', 'sounded', 'sounding',},
+
+    'phrasal_copular_verbs': {
+        (('turn', 'turns', 'turned', 'turning'), 'out'),
+        (('end', 'ends', 'ended', 'ending'), 'up'),
+        (('wind', 'winds', 'wound', 'winding'), 'up')
+    },
+
+    # might be more efficent to do matches like this with nested dicts
 
     'necessity_modals': [['must'], ['should'], ['had', 'better'], ["'d", 'better'], ['better'], ['have', 'to'],
                          ['need', 'to'], ['ought', 'to'], ["'s", 'got', 'to'], ["'ve", 'got', 'to'],
