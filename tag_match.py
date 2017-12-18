@@ -33,8 +33,9 @@ tag_match = {
 
     ### DETERMINERS ###
 
-    'AT': (('ati', 0),),                    #   ati++++ singular definite article {the, no)
-    'AT1': (('at', 0),),                    #   at++++  singular indefinite articles
+
+    'AT': (('DET', 0), ('AT', 1), ('DEF', 2), ('SING', 3)),                      #   DET+AT+DEF+SING++ singular definite article {the, no)
+    'AT1': (('DET', 0), ('AT', 1), ('INDEF', 2), ('SING', 3)),                   #   DET+AT+INDEF+SING++  singular indefinite articles
     'DA1': (('ap', 0),),                    #   ap++++  singular post-determiner
     'DA2': (('aps', 0),),                   #   aps++++ plural post-determiner
     'DAR': (('ap', 0),),                    #   ap++++  comparative post-determiner
@@ -55,10 +56,10 @@ tag_match = {
     # 'PPHS2': (('pp3a', 0), ('pp3', 1)),     # they      pp3a+pp3+++ singular third person subject pronoun + third person personal pronoun
 
     ## OBJECT PRONOUNS ##
-    'PPIO1': (('pp1o', 0), ('pp1', 1)),     # me       pp1o+pp1+++ singular first person object pronoun
-    'PPIO2': (('pp1o', 0), ('pp1', 1)),     # us       pp1o+pp1+++ singular first person object pronoun
-    'PPHO1': (('pp3o', 0), ('pp3', 1)),     # him, her pp3o+pp3+++  third person  object pronoun
-    'PPHO2': (('pp3o', 0), ('pp3', 1)),     # them     pp3o+pp3+++  third person  object pronoun
+    'PPIO1': (('P', 0), ('PER', 1), ('SING', 2), ('1', 3), ('O', 4)),     # me       P+PER+SING+1+O+ singular first person object pronoun
+    'PPIO2': (('P', 0), ('PER', 1), ('PLUR', 2), ('1', 3), ('O', 4)),     # us       P+PER+PLUR+1+O+ singular first person object pronoun
+    'PPHO1': (('P', 0), ('PER', 1), ('SING', 2), ('3', 3), ('O', 4)),     # him, her P+PER+SING+3+O+  third person  object pronoun
+    'PPHO2': (('P', 0), ('PER', 1), ('PLUR', 2), ('3', 3), ('O', 4)),     # them     P+PER+PLUR+3+O+  third person  object pronoun
 
     ## YOU AND IT ##
     # Neither Biber nor CLAWS seems to distinguish between subject and object for you and it
@@ -66,14 +67,14 @@ tag_match = {
     #'PPY': (('pp2', 0), ('pp2', 1)),        # you       pp2+pp2+++  second person pronoun + second person pronoun
 
     ## POSSESSIVE PERSONAL PRONOUNS ##
-    'PPGE': (('pp$$', 0),),                  # mine, yours, hers     pp$$++++ possessive personal pronoun
+    'PPGE': (('P', 0), ('PER', 1), ('POS', 4)),                             # mine, yours, hers     P+PER+++POS+ possessive personal pronoun
 
     ## INDEFINITE PRONOUNS ###
-    'PN': (('pn', 0),),                      # none                  pn++++ indefinite pronoun
-    'PN1': (('pn', 0),),                     # everybody, something  pn++++ indefinite pronoun
+    'PN': (('P', 0),),                                                      # none   P+++++ indefinite pronoun
+    'PN1': (('P', 0), ('N', 1), ('0', 3)),                                  # everybody, something P+N++0+ indefinite pronoun
 
     ## REFLEXIVE PRONOUNS ##
-    'PNX1': (('ppl1', 0),),                 # oneself               ppl1++++    indefinite reflexive pronoun
+    'PNX1': (('P', 0), ('N', 1), ('0', 3), ('X', 4)),                       # oneself   P+N++0+X+    indefinite reflexive pronoun
     
     ## EXISTENTIAL THERE ##
     'EX': (('ex', 0), ('pex', 1)),          # there     ex+pex+++
