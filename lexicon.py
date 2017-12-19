@@ -6,12 +6,23 @@ lexicon = {
       'what', 'who', 'how', 'why', 'where', 'which', 'whose', 'whom'
     },
 
+    'all_complementizers' : {
+        'what', 'who', 'how', 'why', 'where', 'which', 'whose', 'whom', 'that', 'to'
+    },
+
     'extraposing_verbs': {
         'appear', 'appears', 'appeared', 'appearing',
         #'be', 'am', "'m", 'is', "'s", 'are', "'re", 'been', 'being',
         'follow', 'follows', 'following', 'followed',
         'seem', 'seems', 'seemed', 'seeming',
         'show', 'shows', 'showed', 'showing', 'shown'
+    },
+
+    # longman p 714
+    'extraposed_to_verbs': {
+        'help', 'helps', 'helped', 'helping',
+        'take', 'takes', 'took', 'taken', 'taking',
+
     },
 
     # pp. 672-673 in longman
@@ -82,15 +93,15 @@ lexicon = {
     'vwbn': {
 
         # suasive
-        'vsua': {'drawn', 'ordained', 'undertook', 'granted', 'ordered', 'resolved', 'resulted', 'requested',
+        'vsua': {'drawn', 'ordained', 'undertaken', 'granted', 'ordered', 'resolved', 'resulted', 'requested',
                  'recommended', 'advocated', 'reminded', 'conceded', 'urged', 'proposed', 'persuaded', 'enjoined',
                  'demanded', 'provided', 'intended', 'argued', 'arranged', 'desired', 'advanced'},
 
         # public
         'vpub': {'emphasized', 'signalled', 'misled', 'answered', 'remarked', 'shouted', 'questioned', 'explained',
                  'reported', 'announced', 'said', 'contended', 'confirmed', 'displayed', 'declared', 'told', 'hinted',
-                 'expressed', 'insisted', 'acknowledged', 'stated', 'boasted', 'swore', 'assured', 'admitted',
-                 'maintained', 'informed', 'bought', 'charged', 'recorded', 'alleged', 'emphasised', 'claimed',
+                 'expressed', 'insisted', 'acknowledged', 'stated', 'boasted', 'sworn', 'assured', 'admitted',
+                 'maintained', 'informed', 'bought', 'charged', 'recorded', 'alleged', 'emphasised', 'emphasized', 'claimed',
                  'drafted', 'guaranteed', 'protested', 'intimated', 'added', 'testified', 'suggested', 'denied',
                  'telephoned', 'honoured', 'pleaded', 'mentioned', 'advised', 'replied', 'predicted', 'objected',
                  'submitted', 'complained', 'promised', 'asked', 'stressed', 'asserted', 'warned', 'agreed'},
@@ -100,10 +111,10 @@ lexicon = {
                  'supposed', 'used', 'demonstrated', 'presumed', 'proven', 'accepted', 'saw', 'concerned',
                  'forgotten', 'thought', 'read', 'estimated', 'reflected', 'appreciated', 'perceived', 'observed',
                  'determined', 'decided', 'established', 'known', 'preferred', 'assumed', 'believed', 'realised',
-                 'noticed', 'reasoned', 'considered', 'concluded', 'remembered', 'proved', 'sensed', 'held', 'shown',
-                 'learned', 'grasped', 'found', 'anticipated', 'expected', 'felt', 'revealed', 'wrote', 'discovered',
-                 'showed', 'heard', 'recognized', 'recognised', 'forgot', 'suspected', 'feared', 'calculated', 'seen',
-                 'pretended', 'indicated', 'defined', 'knew', 'wished', 'meant', 'reached', 'implied', 'persisted',
+                 'noticed', 'reasoned', 'considered', 'concluded', 'remembered', 'proven', 'sensed', 'held', 'shown',
+                 'learned', 'grasped', 'found', 'anticipated', 'expected', 'felt', 'revealed', 'written', 'discovered',
+                 'showed', 'heard', 'recognized', 'recognised', 'forgotten', 'suspected', 'feared', 'calculated', 'seen',
+                 'pretended', 'indicated', 'defined', 'known', 'wished', 'meant', 'reached', 'implied', 'persisted',
                  'understood', 'prayed', 'ensured', 'doubted', 'worried', 'succeeded', 'reckoned', 'judged',
                  'followed'},
 
