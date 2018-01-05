@@ -191,7 +191,7 @@ class BiberCorpus(Corpus):
         >>> bc = BiberCorpus('/home/mike/corpora/Longman Spoken and Written Corpus (FOR GRAMMAR PROJECT USE ONLY!)')
         >>> fd = bc.lex_freq('vwbn', 'vpsv')
         
-        Arguments:
+        Arguments:            
             *tags: tags to use in the search
         Keyword Arguments:
             encoding: encoding of input files
