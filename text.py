@@ -52,6 +52,8 @@ class Text:
                         self.passives,
                         self.proper_nouns,
                         self.modal_nec,
+                        self.modal_pos,
+                        self.modal_prd,
                         self.basic_matcher]
 
         # register is not used for anything yet
@@ -406,30 +408,86 @@ class Text:
         return sent
 
     def modal_nec(self, sent):
+        # divides sentences into bigrams
+        sent_bigrams = [[w.lower(), sent[i + 1][0].lower()] for i, (w, t, bt) in enumerate(sent) if i < len(sent) - 1]
 
-        sent_bigrams = [[w.lower(), sent[i+1][0].lower()] for i, (w, t, bt) in enumerate(sent) if i < len(sent) - 1]
+        for i, (word, tag, biber_tags) in enumerate(sent):
+            # checks to see if the modal is in the corresponding lexicon and checks the tags to make sure they are correct
+            if ([word.lower()] in self.lexicon_dict['necessity_modals'] and tag == 'VM')\
+                    or (word.lower() == 'better' and tag[0:2] == 'VV'):
+
+                # tags the words with biber tags
+                sent[i][2][0] = 'VM'
+                sent[i][2][2] = 'NEC'
+
+            else:
+                # checks bigrams and finds matches in the lexicon
+                for nec_modal in self.lexicon_dict['necessity_modals']:
+                    if (len(nec_modal) > 2 and nec_modal[0] == word.lower() and nec_modal[1:] in sent_bigrams[i + 1:i + 3]) \
+                        or (i < len(sent) - 1 and len(nec_modal) == 2 and nec_modal[0] == word.lower() and
+                        nec_modal[1] == sent[i + 1][0].lower() and (sent[i + 1][1] == 'TO')):
+                        print(sent[i + 1])
+                        print("3")
+                        print(sent[i + 1][1])
+                        print("4")
+
+                        # tags the words with biber tags
+                        for n in range(len(nec_modal)):
+                            # Adds the VM++NEC+MULTI+ tag to all words in a multi-word modal
+
+                            sent[i + n][2][0] = 'VM'
+                            sent[i + n][2][1] = 'NEC'
+                            sent[i + n][2][4] = 'MULTI'
+
+        return sent
+
+    def modal_pos(self, sent):
+
+        sent_bigrams = [[w.lower(), sent[i + 1][0].lower()] for i, (w, t, bt) in enumerate(sent) if i < len(sent) - 1]
 
         for i, (word, tag, biber_tags) in enumerate(sent):
 
-            if ([word.lower()] in self.lexicon_dict['necessity_modals'] and tag[0] == 'VM') \
-                    or (word.lower() == 'better' and tag[0:2] =='VV'):
-                sent[i][2][0] = 'md'
-                sent[i][2][1] = 'nec'
+            if [word.lower()] in self.lexicon_dict['possibility_modals'] and tag == 'VM':
+
+                sent[i][2][0] = 'VM'
+                sent[i][2][2] = 'POS'
 
             else:
-                for nec_modal in self.lexicon_dict['necessity_modals']:
-                    if (len(nec_modal) > 2 and nec_modal[0] == word.lower() and nec_modal[1:] in sent_bigrams[i+1:i+3])\
-                        or (i < len(sent) - 1 and len(nec_modal) == 2 and nec_modal[0] == word.lower() and nec_modal[1] == sent[i+1][0].lower()):
+                for pos_modal in self.lexicon_dict['possibility_modals']:
+                    if (len(pos_modal) > 2 and pos_modal[0] == word.lower() and pos_modal[1:] in sent_bigrams[i + 1:i + 3]) \
+                        or (i < len(sent) - 1 and len(pos_modal) == 2 and pos_modal[0] == word.lower() and
+                                        pos_modal[1] == sent[i + 1][0].lower()):
 
-                        for n in range(len(nec_modal)):
+                        for n in range(len(pos_modal)):
                             # Adds the md+nec+++ tag to all words in a multi-word modal
-                            # NOTE: In Longman, md+nec+++ is only given to the last word, and preceeding words
-                            # in the verb are given the md"++pmd"++ tag, but I don't know what this is
-                            # also note that contracted forms should have 0 in as the final character in the biber tag
-                            # which does not happen here
-                            sent[i + n][2][0] = 'md'
-                            sent[i + n][2][1] = 'nec'
 
+                            sent[i + n][2][0] = 'VM'
+                            sent[i + n][2][1] = 'POS'
+                            sent[i + n][2][4] = 'MULTI'
+
+        return sent
+
+    def modal_prd(self, sent):
+
+        sent_bigrams = [[w.lower(), sent[i + 1][0].lower()] for i, (w, t, bt) in enumerate(sent) if i < len(sent) - 1]
+
+        for i, (word, tag, biber_tags) in enumerate(sent):
+            if [word.lower()] in self.lexicon_dict['prediction_modals'] and tag == 'VM':
+                sent[i][2][0] = 'VM'
+                sent[i][2][2] = 'PRD'
+
+            else:
+                for prd_modal in self.lexicon_dict['prediction_modals']:
+                    if (len(prd_modal) > 2 and prd_modal[0] == word.lower() and prd_modal[1:] in sent_bigrams[i + 1:i + 3]) \
+                        or (i < len(sent) - 1 and len(prd_modal) == 2 and prd_modal[0] == word.lower() and
+                                        prd_modal[1] == sent[i + 1][0].lower()):
+
+                        for n in range(len(prd_modal)):
+                            # Adds the md+prd+++ tag to all words in a multi-word modal
+
+                            sent[i + n][2][0] = 'VM'
+                            sent[i + n][2][1] = 'PRD'
+                            sent[i + n][2][4] = 'MULTI'
         return sent
 
     def replace_in_claws(self, sent):
