@@ -46,7 +46,7 @@ class Corpus:
         self.copy_dir_tree(new_folder)
 
         for i, file_name in enumerate(self.files):
-            text = Text(file_name, encoding=self.encoding_in)
+            text = Text(file_name, input_encoding=self.encoding_in)
             file_name = path.join(new_folder, file_name[len(self.folder) + 1:-3] + ext)
             text.write(file_name)
 
