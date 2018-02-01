@@ -23,10 +23,10 @@ class Text:
     """
     # regexp pattern used for sentence tokenization
     # Could probably be improved so that `if s.strip()` does not have to be used in self.sents comprehension
-    sentence_delimiter = '\n?</?s>\n?'
+
     # regexp pattern used to separate words from tags.
     # Uses negative and positive lookbehind to catch _ while omitting patterns like _________
-    word_tag_delimiter = '_'
+
 
     # Passed by default as **kwargs to the methods called in self.parse
     parser_config = {
@@ -44,7 +44,8 @@ class Text:
     token_tag_match_dict = toktagm.token_tag_match
     claws_replacements_dict = cr.replacements
 
-    def __init__(self, filepath, register='written', encoding='UTF-8', open_errors='ignore', lowercase=False):
+    def __init__(self, filepath, register='written', input_encoding='UTF-8', input_open_errors='ignore', lowercase=False,
+                 header_end=0, sentence_delimiter = '\n?</?s>\n?', word_tag_delimiter = '_'):
 
         # The methods in this list will be applied to every sentence in the text when Text().parse() is called.
         self.parsers = [self.replace_in_claws,
@@ -59,27 +60,46 @@ class Text:
         # register is not used for anything yet
         self.register = register
         self.filepath = filepath
+        self.input_encoding = input_encoding
+        self.input_open_errors = input_open_errors
+        self.lowercase = lowercase
+        self.header_end = header_end
+        self.sentence_delimiter = sentence_delimiter
+        self.word_tag_delimiter = word_tag_delimiter
+        self.open()
 
-        with open(filepath, encoding=encoding, errors=open_errors) as f:
+    def open(self):
+        with open(self.filepath, encoding=self.input_encoding, errors=self.input_open_errors) as f:
             self.text = f.read()
 
-        # makes self.text into a list of sentences
-        # sentences are tuples of lists of word-tag pairs
-        if lowercase:
-            self.sents = tuple(
-                tuple(['_'.join(element.split(self.word_tag_delimiter)[:-1]).lower(),
-                       element.split(self.word_tag_delimiter)[-1]]
-                      for element in s.strip().split())
-                for s in split(self.sentence_delimiter, self.text) if s.strip()
-            )
-        else:
-            self.sents = tuple(
-                tuple(['_'.join(element.split(self.word_tag_delimiter)[:-1]),
-                       element.split(self.word_tag_delimiter)[-1]]
-                for element in s.strip().split())
-                for s in split(self.sentence_delimiter, self.text) if s.strip()
-            )
+        if self.lowercase:
+            self.text = self.text.lower()
 
+        self.sents = []
+        sents = split(self.sentence_delimiter, self.text)[self.header_end:]
+
+        for sent in sents:
+            sent = sent.strip()
+
+            if sent:
+                # Splits up the word-tag pairs from the sentence string
+                sent = sent.split()
+                sent_as_list = []
+
+                for token_tag_dyad in sent:
+                    # splits into a token and tag
+                    token_tag_dyad = token_tag_dyad.split(self.word_tag_delimiter)
+                    # Joining on self.word_tag_delimiter accounts for tokens that have self.word_tag_delimiter within the string
+                    token = self.word_tag_delimiter.join(token_tag_dyad[:-1])
+                    tag = token_tag_dyad[-1]
+
+                    # Deals with tags that have no values
+                    if tag == '':
+                        tag = 'EMPTY'
+
+                    sent_as_list.append([token, tag])
+
+                self.sents.append(sent_as_list)
 
     def tokens(self):
         """Returns a list of lists of tagged tokens without sentence boundaries."""
@@ -121,9 +141,7 @@ class Text:
 
     def parse(self):
         """Calls the items in self.parsers on every sentence in self.sents."""
-
         parsed_sents = []
-
         for sent in self.sents:
             # Adds list that will contain biber tags to each element in sent
             # If this is done another way, then replace the value of parsed_sent below with copy.deepcopy(sent)
@@ -426,10 +444,6 @@ class Text:
                     if (len(nec_modal) > 2 and nec_modal[0] == word.lower() and nec_modal[1:] in sent_bigrams[i + 1:i + 3]) \
                         or (i < len(sent) - 1 and len(nec_modal) == 2 and nec_modal[0] == word.lower() and
                         nec_modal[1] == sent[i + 1][0].lower() and (sent[i + 1][1] == 'TO')):
-                        print(sent[i + 1])
-                        print("3")
-                        print(sent[i + 1][1])
-                        print("4")
 
                         # tags the words with biber tags
                         for n in range(len(nec_modal)):
