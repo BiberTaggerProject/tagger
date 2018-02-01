@@ -445,6 +445,11 @@ class Text:
                         or (i < len(sent) - 1 and len(nec_modal) == 2 and nec_modal[0] == word.lower() and
                         nec_modal[1] == sent[i + 1][0].lower() and (sent[i + 1][1] == 'TO')):
 
+                        #print(sent[i + 1])
+                        #print("3")
+                        #print(sent[i + 1][1])
+                        #print("4")
+
                         # tags the words with biber tags
                         for n in range(len(nec_modal)):
                             # Adds the VM++NEC+MULTI+ tag to all words in a multi-word modal
