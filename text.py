@@ -90,12 +90,14 @@ class Text:
                     # splits into a token and tag
                     token_tag_dyad = token_tag_dyad.split(self.word_tag_delimiter)
                     # Joining on self.word_tag_delimiter accounts for tokens that have self.word_tag_delimiter within the string
-                    token = self.word_tag_delimiter.join(token_tag_dyad[:-1])
-                    tag = token_tag_dyad[-1]
-
-                    # Deals with tags that have no values
-                    if tag == '':
+                    if len(token_tag_dyad) == 1:
+                        token = token_tag_dyad[0]
                         tag = 'EMPTY'
+                    else:
+                        token = self.word_tag_delimiter.join(token_tag_dyad[:-1])
+                        tag = token_tag_dyad[-1]
+                        if not tag:
+                            tag = 'EMPTY'
 
                     sent_as_list.append([token, tag])
 
