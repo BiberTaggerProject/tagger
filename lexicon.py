@@ -1,7 +1,85 @@
 
 lexicon = {
 
-    # might be more effient to do matches like this with nested dicts
+    # What to do with 'whether', 'if', wh-ever words?
+    'wh_complementizers': {
+      'what', 'who', 'how', 'why', 'where', 'which', 'whose', 'whom'
+    },
+
+    'all_complementizers' : {
+        'what', 'who', 'how', 'why', 'where', 'which', 'whose', 'whom', 'that', 'to'
+    },
+
+    'extraposing_verbs': {
+        'appear', 'appears', 'appeared', 'appearing',
+        #'be', 'am', "'m", 'is', "'s", 'are', "'re", 'been', 'being',
+        'follow', 'follows', 'following', 'followed',
+        'seem', 'seems', 'seemed', 'seeming',
+        'show', 'shows', 'showed', 'showing', 'shown'
+    },
+
+    # longman p 714
+    'extraposed_to_verbs': {
+        'help', 'helps', 'helped', 'helping',
+        'take', 'takes', 'took', 'taken', 'taking',
+
+    },
+
+    # pp. 672-673 in longman
+    'extraposing_adjectives': {
+        'clear', 'likely', 'unlikely', 'possible', 'impossible',
+        'true',
+
+        'accepted', 'apparent', 'certain', 'clear', 'correct',
+        'doubtful', 'evident', 'false', 'inevitable', 'likely',
+        'unlikely', 'obvious', 'plain', 'possible', 'impossible',
+        'probable', 'right', 'true', 'well-known',
+
+        'acceptable', 'unacceptable', 'amazing', 'anomalous',
+        'annoying', 'appropriate', 'astonishing', 'awful', 'inconceivable',
+        'conceivable', 'curious', 'disappointing',
+        'dreadful', 'embarrassing', 'extraordinary', 'unfortunate', 'fortunate',
+        'frightening', 'funny', 'good',
+        'great', 'horrible', 'incidental', 'incredible', 'indisputable',
+        'interesting', 'ironic', 'irritating',
+        'unlucky', 'lucky', 'natural', 'neat', 'nice', 'notable', 'noteworthy',
+        'noticeable', 'odd', 'okay',
+        'paradoxical', 'peculiar', 'preferable', 'ridiculous', 'sad',
+        'sensible', 'shocking', 'silly', 'strange',
+        'stupid', 'sufficient', 'surprising', 'tragic', 'untypical', 'typical',
+        'unfair', 'understandable', 'unthinkable', 'unusual',
+        'upsetting', 'wonderful',
+
+        'advisable', 'critical', 'crucial', 'desirable', 'essential',
+        'fitting', 'imperative', 'important', 'necessary', 'obligatory',
+        'vital'
+
+    },
+
+
+    'copular_verbs': {
+        'seem', 'seems', 'seemed', 'seeming',
+        'appear', 'appears', 'appeared', 'appearing',
+        'keep', 'keeps', 'kept', 'keeping',
+        'remain', 'remains', 'remained', 'remaining',
+        'stay', 'stays', 'stayed', 'staying',
+        'become', 'becomes', 'became', 'becoming',
+        'get', 'gets', 'got', 'getting', 'gotten',
+        'go', 'goes', 'went', 'going', 'gone',
+        'grow', 'grows', 'grew', 'growing', 'grown',
+        'prove', 'proves', 'proved', 'proving', 'proven',
+        'come', 'comes', 'came', 'coming',
+        'turn', 'turns', 'turned', 'turning',
+        'look', 'looks', 'looked', 'looking',
+        'sound', 'sounds', 'sounded', 'sounding',},
+
+    'phrasal_copular_verbs': {
+        (('turn', 'turns', 'turned', 'turning'), 'out'),
+        (('end', 'ends', 'ended', 'ending'), 'up'),
+        (('wind', 'winds', 'wound', 'winding'), 'up')
+    },
+
+    # might be more efficent to do matches like this with nested dicts
 
     'necessity_modals': [['must'], ['should'], ['had', 'better'], ["'d", 'better'], ['better'], ['have', 'to'],
                              ['need', 'to'], ['ought', 'to'], ["'s", 'got', 'to'], ["'ve", 'got', 'to'],
@@ -36,15 +114,15 @@ lexicon = {
     'vwbn': {
 
         # suasive
-        'vsua': {'drawn', 'ordained', 'undertook', 'granted', 'ordered', 'resolved', 'resulted', 'requested',
+        'vsua': {'drawn', 'ordained', 'undertaken', 'granted', 'ordered', 'resolved', 'resulted', 'requested',
                  'recommended', 'advocated', 'reminded', 'conceded', 'urged', 'proposed', 'persuaded', 'enjoined',
                  'demanded', 'provided', 'intended', 'argued', 'arranged', 'desired', 'advanced'},
 
         # public
         'vpub': {'emphasized', 'signalled', 'misled', 'answered', 'remarked', 'shouted', 'questioned', 'explained',
                  'reported', 'announced', 'said', 'contended', 'confirmed', 'displayed', 'declared', 'told', 'hinted',
-                 'expressed', 'insisted', 'acknowledged', 'stated', 'boasted', 'swore', 'assured', 'admitted',
-                 'maintained', 'informed', 'bought', 'charged', 'recorded', 'alleged', 'emphasised', 'claimed',
+                 'expressed', 'insisted', 'acknowledged', 'stated', 'boasted', 'sworn', 'assured', 'admitted',
+                 'maintained', 'informed', 'bought', 'charged', 'recorded', 'alleged', 'emphasised', 'emphasized', 'claimed',
                  'drafted', 'guaranteed', 'protested', 'intimated', 'added', 'testified', 'suggested', 'denied',
                  'telephoned', 'honoured', 'pleaded', 'mentioned', 'advised', 'replied', 'predicted', 'objected',
                  'submitted', 'complained', 'promised', 'asked', 'stressed', 'asserted', 'warned', 'agreed'},
@@ -54,10 +132,10 @@ lexicon = {
                  'supposed', 'used', 'demonstrated', 'presumed', 'proven', 'accepted', 'saw', 'concerned',
                  'forgotten', 'thought', 'read', 'estimated', 'reflected', 'appreciated', 'perceived', 'observed',
                  'determined', 'decided', 'established', 'known', 'preferred', 'assumed', 'believed', 'realised',
-                 'noticed', 'reasoned', 'considered', 'concluded', 'remembered', 'proved', 'sensed', 'held', 'shown',
-                 'learned', 'grasped', 'found', 'anticipated', 'expected', 'felt', 'revealed', 'wrote', 'discovered',
-                 'showed', 'heard', 'recognized', 'recognised', 'forgot', 'suspected', 'feared', 'calculated', 'seen',
-                 'pretended', 'indicated', 'defined', 'knew', 'wished', 'meant', 'reached', 'implied', 'persisted',
+                 'noticed', 'reasoned', 'considered', 'concluded', 'remembered', 'proven', 'sensed', 'held', 'shown',
+                 'learned', 'grasped', 'found', 'anticipated', 'expected', 'felt', 'revealed', 'written', 'discovered',
+                 'showed', 'heard', 'recognized', 'recognised', 'forgotten', 'suspected', 'feared', 'calculated', 'seen',
+                 'pretended', 'indicated', 'defined', 'known', 'wished', 'meant', 'reached', 'implied', 'persisted',
                  'understood', 'prayed', 'ensured', 'doubted', 'worried', 'succeeded', 'reckoned', 'judged',
                  'followed'},
 

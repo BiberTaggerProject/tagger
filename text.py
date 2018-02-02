@@ -49,6 +49,7 @@ class Text:
 
         # The methods in this list will be applied to every sentence in the text when Text().parse() is called.
         self.parsers = [self.replace_in_claws,
+                        self.extraposition,
                         self.phrasal_verbs,
                         self.passives,
                         self.proper_nouns,
@@ -195,6 +196,202 @@ class Text:
         else:
             return sent[start + 1:start + 1 + tail_length]
 
+    def extraposition(self, sent):
+        """Finds extraposed clauses
+        
+        Only catches the following types of extraposed clauses:
+        
+        - extraposition as adjectival predicate with
+            - that-deletion
+            - that as clause head
+            - wh-word as clause head
+            - to as clause head
+            
+        - extraposed to-clause controlled by take, be, or help coming after NP or PP
+            e.g.:   It will take China centuries to undo the damage.
+                    It took three Stevie kicks to put him down
+            Needs to be tested on bigger corpus. Seems like this one is also catching extraposed to-clauses as
+            adjectival predicates that are not being caught on account of having adjectives not in the lexicon.
+            
+        - extraposed that-clause coming after main verb
+            e.g.    It has been confirmed through BestBuy.com that it is in fact TV-14 .
+                    It became obvious with ever-tightening government budgets that a long-term dedicated funding source for targeted spay/neuter programs was vital .
+            Will probably not be able to come up with a rule-based way of finding alternative with that-deletion.
+        """
+        # todo: decide what words in the phrase to tag -- Right now it just tags dummy it
+        # todo: look into if "whether" can be a complementizer and, if it can, adjust conditional statements to match whole tag instead of just "CS" to exclude sentences as ECs
+
+        """
+        Notable errors:
+        
+        THAT DEL ['It', "'s", 'right', 'there', 'for', 'everyone', 'to', 'read', '.']      
+        CLAWS7's Fault -- THAT DEL ['it_PPH1', 'were_VBDR', 'really_RR', 'a_RR31', 'great_RR32', 'deal_RR33', 'more_RGR', 'convenient_JJ', 'to_TO', 'do_VDI', 'so_RR', 'than_CSN', 'to_TO', 'deal_VVI', 'with_IW', 'the_AT', 'police_NN2', 'and_CC', 'the_AT', 'insurance_NN1', 'companies_NN2', 'and_CC', 'all_DB', ',_,', 'well_RR', ',_,', 'then_RT', '..._...', 'maybe_RR', '._.', '<p>_NULL']        
+        Is this an error? -- [['it', 'PPH1', '+++++'], ['can', 'VM', '+++++'], ['seem', 'VVI', '+++++'], ['silly', 'JJ', '+++++'], ['to', 'TO', 'TO++++EXT+'], ['say', 'VVI', '+++++']
+        mistagged as to clause controlled by verb  [['it', 'PPH1'], ["'s", 'VBZ'], ['usually', 'RR'], ['1', 'MC1'], ['part', 'NN1'], ['cheese', 'NN1'], ['to', 'II'], ['3', 'MC'], ['parts', 'NN2'], ['bechemel', 'VV0'], [',', ','], ['with', 'IW'], ['the', 'AT'], ['cheese', 'NN1'], ['being', 'VBG'], ['split', 'VVN'], ['half', 'DB'], ['and', 'CC'], ['half', 'DB'], ['parmesan', 'JJ'], ['and', 'CC'], ['gruyere', 'NN1'], ['.', '.']]
+
+        
+        """
+
+        for i, (word, tag, biber_tags) in enumerate(sent):
+
+            if word.lower() == 'it':
+                sent_tail = self.sent_tails(sent, i, 7)
+
+                # values below will be index of token in sent tail if not None
+                extraposing_adj_verb_match_i = None # verb coming before adjectival predicate
+                extraposing_verb_to_clause_match_i = None   # verb that can control extraposed to-clause
+                noun_phrase_to_clause_match_i = None    # noun following verb in self.lexicon_dict['extraposed_to_verbs']
+                adj_match_i = None  # sent_tail of adjective controlling the extraposed clause
+                any_verb_match_i = None # lexical verb following 'it' that is not in categories above
+                noun_phrase_that_clause_match_i = None  # noun following lexical verb
+
+                for n, (tail_word, tail_tag, _) in enumerate(sent_tail):
+                    tail_word = tail_word.lower()
+                    # matches lexical verbs coming before adjectives extraposed predicates
+                    if tail_word in self.lexicon_dict['extraposing_verbs']:
+                        extraposing_adj_verb_match_i = n
+
+                    # matches with lexical verbs that can control extraposed to-clause - forms of help and take
+                    if tail_word in self.lexicon_dict['extraposed_to_verbs']:
+                        extraposing_verb_to_clause_match_i = n
+
+                    # matches lexical 'be'
+                    elif tail_tag[:2] == 'VB' and n < len(sent_tail) - 1:
+                        following_verbs = [w for w,t,_ in sent_tail[n+1:] if t[0] == 'V']
+                        if not following_verbs:
+                            extraposing_adj_verb_match_i = n
+                            extraposing_verb_to_clause_match_i = n
+
+                    # any lexical verb following 'it'
+                    elif tail_tag[:2] == 'VV':
+                        any_verb_match_i = n
+
+                    # matches NP functioning either as object of preposition, object, or subject predicate that could be
+                    # followed by extraposed to-clause
+                    elif extraposing_verb_to_clause_match_i is not None and tail_tag[0] == 'N':
+                        noun_phrase_to_clause_match_i = n
+
+                    # matches noun after any lexical verb is matched
+                    elif any_verb_match_i is not None and tail_tag[0] == 'N':
+                        noun_phrase_that_clause_match_i = n
+
+                    # matches controlling adjective after verb in corresponding semantic domain is matched
+                    elif extraposing_adj_verb_match_i is not None and tail_word in self.lexicon_dict['extraposing_adjectives']:
+                        adj_match_i =  n
+
+                    # breaks loop if determiner is before controlling adjective
+                    elif adj_match_i is None and tail_tag[0] in 'AD':
+                        break
+
+                    elif noun_phrase_that_clause_match_i and tail_word == 'that':
+                        # breaks if two or less tokens after 'that' -- also rules out possibility of index error in next two statements
+                        if 3 > len(sent) - (i + n + 2):
+                            break
+                        # breaks if a verb is immediately after 'that' -- these would be relative clauses with subject gaps
+                        elif sent[i + n + 2][1][0] == 'V':
+                            break
+                        # breaks if a verb is the 2nd word after 'that' without having a noun or pronoun before it
+                        elif sent[i + n + 3][1][0] == 'V' and sent[i + n + 2][1][0] not in 'PN':
+                            break
+                        # breaks if word before 'that' is a conjunction
+                        elif sent[i + n][1][0] == 'C':
+                            print(' '.join(w for w, t, bt in sent))
+                            break
+
+                        # P+IM++3+EXT
+                        sent[i][2][0] = 'P'
+                        sent[i][2][1] = 'IM'
+                        sent[i][2][3] = '3'
+                        sent[i][2][4] = 'EXT'
+                        # THT+++CLS+EXT
+                        sent[i + n + 1][2][1] = 'THT'
+                        sent[i + n + 1][2][3] = 'CLS'
+                        sent[i + n + 1][2][4] = 'EXT'
+
+                        break
+
+                    elif noun_phrase_to_clause_match_i is not None and tail_word == 'to':
+                        extraposed_clause_tags = self.sent_tails(sent, i + n, 6, entity='tags')
+                        # breaks loop if no verb is within six words of the adjective controlling the extraposed clause
+                        if [t for t in extraposed_clause_tags if t[0] == 'V']:
+                            # dummy it
+                            sent[i][2][0] = 'P'
+                            sent[i][2][1] = 'IM'
+                            sent[i][2][3] = '3'
+                            sent[i][2][4] = 'EXT'
+                            # to
+                            sent[i + n + 1][2][0] = 'TO'
+                            sent[i + n + 1][2][4] = 'EXT'
+
+                        break
+
+                    # ends the loop -- either catches or ignores what comes after the adjective
+                    elif adj_match_i is not None:
+
+                        extraposed_clause_tags = self.sent_tails(sent, i + n, 6, entity='tags')
+                        apply_tag = False
+
+                        # breaks loop if no verb is within six words of the adjective controlling the extraposed clause
+                        if [t for t in extraposed_clause_tags if t[0] == 'V'] :
+
+                            # that-clause without that-deletion
+                            if tail_word == 'that':
+                                apply_tag = True
+                                # THT+++CLS+EX
+                                sent[i + n + 1][2][1] = 'THT'
+                                sent[i + n + 1][2][3] = 'CLS'
+                                sent[i + n + 1][2][4] = 'EXT'
+
+                            # wh-clause - what, how, where, why, which, whose, whom, and who as clause heads
+                            # todo: decide if this should include when, if, whether, or wh-ever words -- is when even possible as a clause head?
+                            elif tail_word in self.lexicon_dict['wh_complementizers']:
+                                apply_tag = True
+
+                                # Classifies what type of WH-word the complementizer is
+                                if tail_word == 'what' or tail_word == 'which':
+                                    # D+WH++CLS+EX
+                                    sent[i + n + 1][2][0] = 'D'
+                                elif tail_word == 'how' or tail_word == 'where' or tail_word == 'why':
+                                    # R+WH++CLS+EX
+                                    sent[i + n + 1][2][0] = 'R'
+                                elif tail_word == 'who' or tail_word == 'whom':
+                                    # P+WH++CLS+EX
+                                    sent[i + n + 1][2][0] = 'P'
+                                elif tail_word == 'whose':
+                                    # D+WH+GE+CLS+EX
+                                    sent[i + n + 1][2][0] = 'D'
+                                    sent[i + n + 1][2][2] = 'GE'
+
+                                # Adds to portion of the tag indicating tag is an extraposed wh clause complementizer
+                                sent[i + n + 1][2][1] = 'WH'
+                                sent[i + n + 1][2][3] = 'CLS'
+                                sent[i + n + 1][2][4] = 'EXT'
+
+                            # to clause
+                            elif tail_word == 'to':
+                                # makes sure to is actually followed by infinitive verb
+                                if i + n + 1 < len(sent) - 1 and sent[i + n + 2][1][-1] == 'I':
+                                    apply_tag = True
+                                    sent[i + n + 1][2][0] = 'TO'
+                                    sent[i + n + 1][2][4] = 'EXT'
+
+                            # that-clause with that-deletion -- checks that controlling adj is followed by Noun or Noun Pre-modifier
+                            # this should probably come last because some of the tags could overlap with lexical categories
+                            # in the if statements above
+                            elif tail_tag[0] in 'ADNJRMEPZ':
+                                apply_tag = True
+
+                        if apply_tag:
+                            # dummy it
+                            sent[i][2][0] = 'P'
+                            sent[i][2][1] = 'IM'
+                            sent[i][2][3] = '3'
+                            sent[i][2][4] = 'EXT'
+
+                        break
+
+        return sent
+
     def phrasal_verbs(self, sent):
         """
         Appends tags to the main verb and particle in phrasal verbs. 
@@ -223,11 +420,9 @@ class Text:
     def passives(self, sent):
         """Appends tags to auxilliary and main verbs in passive verb phrases. Gap allowed between auxilliary and main 
         verb determind by parser_config['passive_range']"""
-
         #todo account for VDN (done) and VHN (had) tags
 
         existential_there_ind = None
-
 
         for i, (word, tag, biber_tags) in enumerate(sent):
 
@@ -274,7 +469,6 @@ class Text:
                         # I don't think that distinguishing between a passive question and a post-nominal modifier
                         # within an active-voice question can be determined using rules.
 
-
                             if '?' in sent_tail_words:
                                 # tags as vwbn... if existential there is within eight tokens to the left
                                 if existential_there_ind is not None and 8 > max(main_verb_i) - existential_there_ind:
@@ -300,7 +494,6 @@ class Text:
                         elif aux_mv_gap_tags.index('VB') < aux_mv_gap_tags.index('VH'):
                             continue
 
-
                     # Adds tags to main verbs (ahead of current index in sent)
                     for mvi in main_verb_i:
 
@@ -320,7 +513,6 @@ class Text:
                                     sent[mvi][2][1] = semantic_domain
                                     break
 
-
                         elif 'by' in sent_tail_words:
                             # vpsv++by+xvbn+    main clause passive verb + + by passive
                             sent[mvi][2][0] = 'vpsv'
@@ -330,7 +522,6 @@ class Text:
                             # Adds tags to aux. verb (current index in sent)
                             sent[i][2] = self.be_aux_tag(word)
 
-
                         else:
                             # vpsv++agls+xvbn+  main clause passive verb + + agentless passive
                             sent[mvi][2][0] = 'vpsv'
@@ -339,7 +530,6 @@ class Text:
 
                             # Adds tags to aux. verb (current index in sent)
                             sent[i][2] = self.be_aux_tag(word)
-
 
             # Checks for passive post-nominal modifiers after nouns that do not already have a BT added
             # VVD will sometimes be tagged as VVN in CLAWS and mess this up.
@@ -373,7 +563,6 @@ class Text:
                                 sent[mvi][2][1] = semantic_domain
                                 break
 
-
         return sent
 
     def proper_nouns(self, sent):
@@ -387,7 +576,6 @@ class Text:
                 sent[i][2][0] = 'np'
 
         return sent
-
 
     def basic_matcher(self, sent):
         """
@@ -642,5 +830,3 @@ class Text:
 
         with open(file_name, 'w', encoding=encoding, errors=errors) as f:
             f.write(parsed_text)
-
-

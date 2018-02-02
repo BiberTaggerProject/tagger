@@ -61,7 +61,7 @@ class Corpus:
             if not path.exists(d):
                 mkdir(d)
 
-    def find(self, *token_tags, lowercase=True, whole_sent=False):
+    def find(self, *token_tags, lowercase=True, whole_sent=False, sent_tail=False, save=False):
         """
         Finds words and ngrams in a CLAWS tagged text.
         
@@ -94,7 +94,7 @@ class Corpus:
                 match = []
                 ngram_ind = 0
 
-                for word, tag in sent:
+                for i, (word, tag) in enumerate(sent):
                     if lowercase: word = word.lower()
 
                     # word and tag must both match
@@ -121,13 +121,22 @@ class Corpus:
                     if ngram_ind == len(token_tags):
                         if whole_sent:
                             matches.append((file_name, sent))
+                        elif sent_tail:
+                            matches.append((file_name, sent[i:]))
                         else:
                             matches.append((file_name, match))
 
                         ngram_ind = 0
                         match = []
+        if save:
+            save_as = input('Save as: ')
+            output = '\n'.join(' '.join(tok + '_' + tag for tok, tag in line) for fn, line in matches)
 
-        return matches
+            with open(save_as, 'w', encoding='utf-8') as f:
+                f.write(output)
+
+        else:
+            return matches
 
     def lex_freq(self, *tags, lowercase=True):
         """
