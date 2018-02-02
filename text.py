@@ -13,22 +13,21 @@ class Text:
     """
     Reads and annotates CLAWS tagged texts
     
-     Arguments:
-            filepath: path to CLAWS tagged text
+    Arguments:
+        filepath: path to CLAWS tagged text
+    
     Keyword arguments:
         register: register of the text
-        encoding: encoding of the file located at filepath
-        open_errors: value of ignore kwarg of of open() when filepath is opened
+        input_encoding: encoding of the file located at filepath
+        input_open_errors: value of ignore kwarg of of open() when filepath is opened
         lowercase: if True, words in sents will be lowercase
+        header_end: the line in which the text will be converted to CLAWS7 from. For example, header_end=1 will cause
+        the text to be converted starting at line 1.
+        sentence_delimiter: regular expression used to split by sentence
+        word_tag_delimiter: string used to separate tokens from tags
     """
-    # regexp pattern used for sentence tokenization
-    # Could probably be improved so that `if s.strip()` does not have to be used in self.sents comprehension
-
-    # regexp pattern used to separate words from tags.
-    # Uses negative and positive lookbehind to catch _ while omitting patterns like _________
 
 
-    # Passed by default as **kwargs to the methods called in self.parse
     parser_config = {
         'phrasal_verb_range': 4,
         'passive_range': 4
@@ -47,16 +46,8 @@ class Text:
     def __init__(self, filepath, register='written', input_encoding='UTF-8', input_open_errors='ignore', lowercase=False,
                  header_end=0, sentence_delimiter = '\n?</?s>\n?', word_tag_delimiter = '_'):
 
-        # The methods in this list will be applied to every sentence in the text when Text().parse() is called.
-        self.parsers = [self.replace_in_claws,
-                        self.extraposition,
-                        self.phrasal_verbs,
-                        self.passives,
-                        self.proper_nouns,
-                        self.modal_nec,
-                        self.modal_pos,
-                        self.modal_prd,
-                        self.basic_matcher]
+        # Makes the list of parsers that will be used on the input text
+        self.set_parsers()
 
         # register is not used for anything yet
         self.register = register
@@ -70,6 +61,7 @@ class Text:
         self.open()
 
     def open(self):
+        """Makes the self.text string and the self.sents list"""
         with open(self.filepath, encoding=self.input_encoding, errors=self.input_open_errors) as f:
             self.text = f.read()
 
@@ -103,6 +95,19 @@ class Text:
                     sent_as_list.append([token, tag])
 
                 self.sents.append(sent_as_list)
+
+    def set_parsers(self):
+        """The methods in this list will be applied to every sentence in the text when Text().parse() is called."""
+        self.parsers = [self.replace_in_claws,
+                        self.extraposition,
+                        self.phrasal_verbs,
+                        self.passives,
+                        self.proper_nouns,
+                        self.modal_nec,
+                        self.modal_pos,
+                        self.modal_prd,
+                        self.basic_matcher]
+
 
     def tokens(self):
         """Returns a list of lists of tagged tokens without sentence boundaries."""
