@@ -503,35 +503,22 @@ class Text:
                     for mvi in main_verb_i:
 
                         if post_nominal_modifier:
-                            # vwbn+++xvbn+      passive postnominal modifier + + + past participle form
-                            # Shouldn't these be able to have a by or agls tag too?
-                            sent[mvi][2][0] = 'vwbn'
-                            sent[mvi][2][3] = 'xvbn'
-
-                            if 'that' not in [w.lower() for w, t, bt in sent[i:mvi]]:
-                                sent[mvi][2][2] = 'tht0'
-
-                            # assigns additional tag if main verb is in 1 of 3 semantic domains of PNMs
-                            # public, private, or suasive
-                            for semantic_domain in self.lexicon_dict['vwbn']:
-                                if sent[mvi][0].lower() in self.lexicon_dict['vwbn'][semantic_domain]:
-                                    sent[mvi][2][1] = semantic_domain
-                                    break
+                            # VL++PNM+++ passive post-nominal modifier
+                            sent[mvi][2][0] = 'VL'
+                            sent[mvi][2][3] = 'PNM'
 
                         elif 'by' in sent_tail_words:
-                            # vpsv++by+xvbn+    main clause passive verb + + by passive
-                            sent[mvi][2][0] = 'vpsv'
-                            sent[mvi][2][2] = 'by'
-                            sent[mvi][2][3] = 'xvbn'
+                            # VL++BY+++ Main clause passive verb with by-phrase
+                            sent[mvi][2][0] = 'VL'
+                            sent[mvi][2][2] = 'BY'
 
                             # Adds tags to aux. verb (current index in sent)
                             sent[i][2] = self.be_aux_tag(word)
 
                         else:
                             # vpsv++agls+xvbn+  main clause passive verb + + agentless passive
-                            sent[mvi][2][0] = 'vpsv'
-                            sent[mvi][2][2] = 'agls'
-                            sent[mvi][2][3] = 'xvbn'
+                            sent[mvi][2][0] = 'VL'
+                            sent[mvi][2][2] = 'AGLS'
 
                             # Adds tags to aux. verb (current index in sent)
                             sent[i][2] = self.be_aux_tag(word)
@@ -545,28 +532,15 @@ class Text:
                                                  i,
                                                  tail_length=self.parser_config['passive_range'],
                                                  entity='tags')
-
                 banned_tags = 'N', 'V'
 
                 if 'VVN' in sent_tail_tags and  not [t[0] for t in sent_tail_tags if t[0] in banned_tags and t != 'VVN']:
                     main_verb_i = [i + n + 1 for n, elem in enumerate(sent_tail_tags) if elem == 'VVN']
 
-
                     for mvi in main_verb_i:
-                        # vwbn+++xvbn+      passive postnominal modifier + + + past participle form
-                        # Shouldn't these be able to have a by or agls tag too?
-                        sent[mvi][2][0] = 'vwbn'
-                        sent[mvi][2][3] = 'xvbn'
-
-                        if 'that' not in [w.lower() for w,t,bt in sent[i:mvi]]:
-                            sent[mvi][2][2] = 'tht0'
-
-                        # assigns additional tag if main verb is in 1 of 3 semantic domains of PNMs
-                        # public, private, or suasive
-                        for semantic_domain in self.lexicon_dict['vwbn']:
-                            if sent[mvi][0].lower() in self.lexicon_dict['vwbn'][semantic_domain]:
-                                sent[mvi][2][1] = semantic_domain
-                                break
+                        # VL++PNM+++ passive post-nominal modifier
+                        sent[mvi][2][0] = 'VL'
+                        sent[mvi][2][3] = 'PNM'
 
         return sent
 
@@ -674,7 +648,6 @@ class Text:
 
                         for n in range(len(pos_modal)):
                             # Adds the md+nec+++ tag to all words in a multi-word modal
-
                             sent[i + n][2][0] = 'VM'
                             sent[i + n][2][1] = 'POS'
                             sent[i + n][2][4] = 'MULTI'
@@ -698,7 +671,6 @@ class Text:
 
                         for n in range(len(prd_modal)):
                             # Adds the md+prd+++ tag to all words in a multi-word modal
-
                             sent[i + n][2][0] = 'VM'
                             sent[i + n][2][1] = 'PRD'
                             sent[i + n][2][4] = 'MULTI'
