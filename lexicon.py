@@ -57,29 +57,28 @@ lexicon = {
     },
 
 
-    'copular_verbs': {
-        'seem', 'seems', 'seemed', 'seeming',
-        'appear', 'appears', 'appeared', 'appearing',
-        'keep', 'keeps', 'kept', 'keeping',
-        'remain', 'remains', 'remained', 'remaining',
-        'stay', 'stays', 'stayed', 'staying',
-        'become', 'becomes', 'became', 'becoming',
-        'get', 'gets', 'got', 'getting', 'gotten',
-        'go', 'goes', 'went', 'going', 'gone',
-        'grow', 'grows', 'grew', 'growing', 'grown',
-        'prove', 'proves', 'proved', 'proving', 'proven',
-        'come', 'comes', 'came', 'coming',
-        'turn', 'turns', 'turned', 'turning',
-        'look', 'looks', 'looked', 'looking',
-        'sound', 'sounds', 'sounded', 'sounding',},
+    'copular_verbs': [
+        ['be'], ['am'], ['are'], ['is'], ['was'], ['were'], ['been'], ['being'],
+        ['seem'], ['seems'], ['seemed'], ['seeming'],
+        ['appear'], ['appears'], ['appeared'], ['appearing'],
+        ['keep'], ['keeps'], ['kept'], ['keeping'],
+        ['remain'], ['remains'], ['remained'], ['remaining'],
+        ['stay'], ['stays'], ['stayed'], ['staying'],
+        ['become'], ['becomes'], ['became'], ['becoming'],
+        ['get'], ['gets'], ['got'], ['getting'], ['gotten'],
+        ['go'], ['goes'], ['went'], ['going'], ['gone'],
+        ['grow'], ['grows'], ['grew'], ['growing'], ['grown'],
+        ['prove'], ['proves'], ['proved'], ['proving'], ['proven'],
+        ['come'], ['comes'], ['came'], ['coming'],
+        ['turn'], ['turns'], ['turned'], ['turning'],
+        ['look'], ['looks'], ['looked'], ['looking'],
+        ['sound'], ['sounds'], ['sounded'], ['sounding']],
 
     'phrasal_copular_verbs': {
         (('turn', 'turns', 'turned', 'turning'), 'out'),
         (('end', 'ends', 'ended', 'ending'), 'up'),
         (('wind', 'winds', 'wound', 'winding'), 'up')
     },
-
-    # might be more efficent to do matches like this with nested dicts
 
     'necessity_modals': [['must'], ['should'], ['had', 'better'], ["'d", 'better'], ['better'], ['have', 'to'],
                              ['need', 'to'], ['ought', 'to'], ["'s", 'got', 'to'], ["'ve", 'got', 'to'],

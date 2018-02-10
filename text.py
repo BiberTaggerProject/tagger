@@ -105,6 +105,7 @@ class Text:
                         self.passives,
                         self.proper_nouns,
                         self.modal_types,
+                        self.adverb_types,
                         self.basic_matcher]
 
     def tokens(self):
@@ -601,33 +602,28 @@ class Text:
 
         for i, (word, tag, biber_tags) in enumerate(sent):
             # checks to see if the modal is in the corresponding lexicon and checks the tags to make sure they are correct
-            if ([word.lower()] in self.lexicon['necessity_modals'] and tag == 'VM') \
+            if ([word.lower()] in self.lexicon_dict['necessity_modals'] and tag == 'VM') \
                     or (word.lower() == 'better' and tag[0:2] == 'VV'):
 
                 # tags the words with biber tags
                 sent[i][2][0] = 'VM'
                 sent[i][2][2] = 'NEC'
 
-            elif [word.lower()] in self.lexicon['possibility_modals'] and tag == 'VM':
-
+            elif [word.lower()] in self.lexicon_dict['possibility_modals'] and tag == 'VM':
                 sent[i][2][0] = 'VM'
                 sent[i][2][2] = 'POS'
 
-            elif [word.lower()] in self.lexicon['prediction_modals'] and tag == 'VM':
+            elif [word.lower()] in self.lexicon_dict['prediction_modals'] and tag == 'VM':
                 sent[i][2][0] = 'VM'
                 sent[i][2][2] = 'PRD'
 
             else:
                 # checks bigrams and finds matches in the lexicon
-                for nec_modal in self.lexicon['necessity_modals']:
+                for nec_modal in self.lexicon_dict['necessity_modals']:
                     if (len(nec_modal) > 2 and nec_modal[0] == word.lower() and nec_modal[1:] in sent_bigrams[
                                                                                                  i + 1:i + 3]) \
                             or (i < len(sent) - 1 and len(nec_modal) == 2 and nec_modal[0] == word.lower() and
                                 nec_modal[1] == sent[i + 1][0].lower() and (sent[i + 1][1] == 'TO')):
-                        print(sent[i + 1])
-                        print("3")
-                        print(sent[i + 1][1])
-                        print("4")
 
                         # tags the words with biber tags
                         for n in range(len(nec_modal)):
@@ -636,7 +632,7 @@ class Text:
                             sent[i + n][2][1] = 'NEC'
                             sent[i + n][2][4] = 'MULTI'
 
-                for pos_modal in self.lexicon['possibility_modals']:
+                for pos_modal in self.lexicon_dict['possibility_modals']:
                     if (len(pos_modal) > 2 and pos_modal[0] == word.lower() and pos_modal[1:] in sent_bigrams[
                                                                                                  i + 1:i + 3]) \
                             or (i < len(sent) - 1 and len(pos_modal) == 2 and pos_modal[0] == word.lower() and
@@ -648,7 +644,7 @@ class Text:
                             sent[i + n][2][1] = 'POS'
                             sent[i + n][2][4] = 'MULTI'
 
-                for prd_modal in self.lexicon['prediction_modals']:
+                for prd_modal in self.lexicon_dict['prediction_modals']:
                     if (len(prd_modal) > 2 and prd_modal[0] == word.lower() and prd_modal[1:] in sent_bigrams[
                                                                                                  i + 1:i + 3]) \
                             or (i < len(sent) - 1 and len(prd_modal) == 2 and prd_modal[0] == word.lower() and
@@ -659,6 +655,18 @@ class Text:
                             sent[i + n][2][0] = 'VM'
                             sent[i + n][2][1] = 'PRD'
                             sent[i + n][2][4] = 'MULTI'
+
+        return sent
+    def adverb_types(self, sent):
+        # tags splitting adverbs
+        for i, (word, tag, biber_tags) in enumerate(sent):
+            # checks to see if the word is an adverb, if the word preceding is either an auxiliary verb, to- particle, or
+            # modal verb and the following word is a lexical verb, then it tags it as a splitting adverb
+            if tag[0] == 'R' and i > 0:
+                if i < len(sent) - 1 and ('VV' in sent[i + 1][1]) and ('VM' or 'TO' or 'VB' or 'VD' or 'VH'
+                ) in sent[i - 1][1]:
+                    sent[i][2][0] = 'R'
+                    sent[i][2][3] = 'SPLT'
 
         return sent
 
