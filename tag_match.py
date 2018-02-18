@@ -19,17 +19,17 @@ tag_match = {
     ### PUNCTUATION ###
     # todo: CLAWS does not split -, $, and % into tokens but it seems that the biber tagger does. Decide if this is a feature worth preserving.
 
-    ',': (('Y', 0), ('COM', 1)),            # ,     Y+COM++++
-    ';': (('Y', 0), ('SCOL', 1)),           # ;     Y+SCOL++++
-    ':': (('Y', 0), ('COL', 1)),            # :     Y+COL++++
-    '?': (('Y', 0), ('QUE', 1)),            # ?     Y+QUE++++
-    '!': (('Y', 0), ('EXCL', 1)),           # !     Y+EXCL++++
-    '.': (('Y', 0), ('PER', 1)),            # .     Y+PER++++
-    '(': (('Y', 0), ('PAR', 1), ('L', 2)),  # (     Y+PAR+L+++
-    ')': (('Y', 0), ('PAR', 2), ('R', 2)),  # )     Y+PAR+R+++
-    "'": (("Y", 0), ('APO', 1)),            # "     Y+APO++++
-    '"': (("Y", 0), ('QUO', 1)),            # '     Y+QUO++++
-    '-': (('Y', 0), ('DSH', 1)),            # -     Y+DSH++++
+    ',': (('Y', 0), ('COM', 1)),                # ,     Y+COM++++
+    ';': (('Y', 0), ('SCOL', 1), ('CLP', 2)),   # ;     Y+SCOL++++
+    ':': (('Y', 0), ('COL', 1), ('CLP', 2)),    # :     Y+COL++++
+    '?': (('Y', 0), ('QUE', 1), ('CLP', 2)),    # ?     Y+QUE++++
+    '!': (('Y', 0), ('EXCL', 1), ('CLP', 2)),   # !     Y+EXCL++++
+    '.': (('Y', 0), ('PER', 1), ('CLP', 2)),    # .     Y+PER++++
+    '(': (('Y', 0), ('PAR', 1), ('L', 2)),      # (     Y+PAR+L+++
+    ')': (('Y', 0), ('PAR', 2), ('R', 2)),      # )     Y+PAR+R+++
+    "'": (("Y", 0), ('APO', 1)),                # "     Y+APO++++
+    '"': (("Y", 0), ('QUO', 1)),                # '     Y+QUO++++
+    '-': (('Y', 0), ('DSH', 1)),                # -     Y+DSH++++
 
     ### DETERMINERS ###
 
