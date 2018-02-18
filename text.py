@@ -105,6 +105,7 @@ class Text:
                         self.passives,
                         self.proper_nouns,
                         self.modal_types,
+                        self.conjunction_types,
                         self.adverb_types,
                         self.basic_matcher]
 
@@ -627,7 +628,7 @@ class Text:
 
                         # tags the words with biber tags
                         for n in range(len(nec_modal)):
-                            # Adds the VM++NEC+MULTI+ tag to all words in a multi-word modal
+                            # Adds the VM+NEC+++MULTI tag to all words in a multi-word modal
                             sent[i + n][2][0] = 'VM'
                             sent[i + n][2][1] = 'NEC'
                             sent[i + n][2][4] = 'MULTI'
@@ -639,7 +640,7 @@ class Text:
                                 pos_modal[1] == sent[i + 1][0].lower()):
 
                         for n in range(len(pos_modal)):
-                            # Adds the md+nec+++ tag to all words in a multi-word modal
+                            # Adds the VM+POS+++MULTI tag to all words in a multi-word modal
                             sent[i + n][2][0] = 'VM'
                             sent[i + n][2][1] = 'POS'
                             sent[i + n][2][4] = 'MULTI'
@@ -651,7 +652,7 @@ class Text:
                                 prd_modal[1] == sent[i + 1][0].lower()):
 
                         for n in range(len(prd_modal)):
-                            # Adds the md+prd+++ tag to all words in a multi-word modal
+                            # Adds the VM+PRD+++MULTI tag to all words in a multi-word modal
                             sent[i + n][2][0] = 'VM'
                             sent[i + n][2][1] = 'PRD'
                             sent[i + n][2][4] = 'MULTI'
@@ -663,11 +664,58 @@ class Text:
             # checks to see if the word is an adverb, if the word preceding is either an auxiliary verb, to- particle, or
             # modal verb and the following word is a lexical verb, then it tags it as a splitting adverb
             if tag[0] == 'R' and i > 0:
-                if i < len(sent) - 1 and ('VV' in sent[i + 1][1]) and ('VM' or 'TO' or 'VB' or 'VD' or 'VH'
+                if i < len(sent) - 1 and (sent[i + 1][1][0] == 'V') and ('VM' or 'TO' or 'VB' or 'VD' or 'VH'
                 ) in sent[i - 1][1]:
                     sent[i][2][0] = 'R'
                     sent[i][2][3] = 'SPLT'
 
+        return sent
+    def conjunction_types(self, sent):
+        for i, (word, tag, biber_tags) in enumerate(sent):
+            # if the CLAWS tag is cc then tag it as a coordinating conjunction in the biber tagfield
+            if tag == 'CC' or tag == 'CCB':
+                sent[i][2][0] = 'C'
+                sent[i][2][1] = 'C'
+            # tags multiword coordinating conjunction
+            if sent[i][0] == 'as' and sent[i + 1][0] == 'well' and sent[i + 2][0] == 'as':
+                sent[i][2][0] = 'C'
+                sent[i][2][1] = 'C'
+                sent[i][2][4] = 'MULTI'
+                sent[i + 1][2][0] = 'C'
+                sent[i + 1][2][1] = 'C'
+                sent[i + 1][2][4] = 'MULTI'
+                sent[i + 2][2][0] = 'C'
+                sent[i + 2][2][1] = 'C'
+                sent[i + 2][2][4] = 'MULTI'
+            # tags adversative coordinating conjunctions
+            elif sent[i][0] == 'but' or sent[i][0] == 'But' or sent[i][0] == 'Yet' or sent[i][0] == 'yet' \
+                    or sent[i][0] == 'Nor' or sent[i][0] == 'nor':
+                sent[i][2][0] = 'C'
+                sent[i][2][1] = 'C'
+                sent[i][2][3] = 'ADVS'
+            if sent[i][2][0] == 'C' and sent[i][2][1] == 'C':
+                # tags phrasal coordination according to Biber's algorithm from his tagger but also takes into account
+                # that commas can come between the coordinated things
+                if (sent[i - 1][1][0] == 'J' and sent[i + 1][1][0] == 'J') or \
+                        (sent[i - 1][1][0] == 'R' and sent[i + 1][1][0] == 'R') or \
+                        (sent[i - 1][1][0] == 'V' and sent[i + 1][1][0] == 'V') or \
+                        (sent[i - 2][1][0] == 'J' and sent[i - 1][1][0] == ',' and sent[i + 1][1][0] == 'J') or \
+                        (sent[i - 2][1][0] == 'R' and sent[i - 1][1][0] == ',' and sent[i + 1][1][0] == 'R') or \
+                        (sent[i - 2][1][0] == 'V' and sent[i - 1][1][0] == ',' and sent[i + 1][1][0] == 'V'):
+                    sent[i][2][2] = 'PHRS'
+                # tags multiword coordinating conjunction as phrasal coordinator
+                elif sent[i - 1][0] == 'as' and sent[i][0] == 'well' and sent[i + 1][0] == 'as':
+                    if (sent[i - 2][1][0] == 'J' and sent[i + 2][1][0] == 'J') or \
+                            (sent[i - 2][1][0] == 'R' and sent[i + 2][1][0] == 'R') or \
+                            (sent[i - 2][1][0] == 'V' and sent[i + 2][1][0] == 'V'):
+                        sent[i - 1][2][2] = 'PHRS'
+                        sent[i][2][2] = 'PHRS'
+                        sent[i + 1][2][2] = 'PHRS'
+                # tags clausal coordination according to Biber's algorithm from his tagger but also takes into account
+                # that commas can come between the two coordinated things
+                if sent[i - 1][2][2] == 'CLP' or (sent[i - 1][2][1] == 'COM' and sent[i + 1][0].lower() in ['it', 'so',
+                        'then', 'you', 'there', 'this', 'these', 'those', 'that', 'I', 'we', 'he', 'she', 'they']):
+                    sent[i][2][2] = 'CLS'
         return sent
 
     def replace_in_claws(self, sent):
