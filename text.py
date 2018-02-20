@@ -688,8 +688,7 @@ class Text:
                 sent[i + 2][2][1] = 'C'
                 sent[i + 2][2][4] = 'MULTI'
             # tags adversative coordinating conjunctions
-            elif sent[i][0] == 'but' or sent[i][0] == 'But' or sent[i][0] == 'Yet' or sent[i][0] == 'yet' \
-                    or sent[i][0] == 'Nor' or sent[i][0] == 'nor':
+            elif sent[i][0].lower() in ['but','yet','nor']:
                 sent[i][2][0] = 'C'
                 sent[i][2][1] = 'C'
                 sent[i][2][3] = 'ADVS'
@@ -718,7 +717,7 @@ class Text:
                     sent[i][2][2] = 'CLS'
 
             # checks to see if it tagged as a subordinating conjunction in CLAWS and if so, tags it as such in Biber
-            if tag[0] == 'C' and tag[1] == 'S':
+            if tag[0:2] == 'CS':
                 sent[i][2][0] = 'C'
                 sent[i][2][1] = 'S'
             # goes through all the multiword subordinating conjunctions in the lexicon and if the word matches the first
@@ -753,8 +752,7 @@ class Text:
                 sent[i][2][2] = 'CND'
             # tags wh- subordinating conjunctions by checking if they are CS in CLAWS and are a wh- word
             elif tag[0:2] == 'CS' and word.lower() in ['what', 'how', 'whether', 'whoever', 'where', 'wherein',
-                                                       'when',
-                                                       'why', 'whomever', 'whichever', 'wherever', 'whenever',
+                                                       'when', 'why', 'whomever', 'whichever', 'wherever', 'whenever',
                                                        'whatever']:
                 sent[i][2][2] = 'WH'
             # tags concessive subordinating conjunction by checking if it is CS in CLAWS and in the concessive class
