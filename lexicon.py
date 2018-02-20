@@ -115,6 +115,37 @@ lexicon = {
                                          ['on', 'condition', 'that'], ['provided', 'that'], ['except', 'that'],
                                          ['in', 'that'], ['in', 'order', 'that'], ['so', 'that'], ['such', 'that'],
                                          ['as', 'if'], ['as', 'though'], ['even', 'if'], ['even', 'though']],
+
+    # adverb types
+    'adverb_types': {
+
+        ##these are in of further attention.  What is currently here is just taken straight from the Biber tagger
+        'conjunctive': {'furthermore', 'likewise', 'similarly', 'consequently', 'therefore', 'moreover', 'nonetheless',
+                        'notwithstanding', 'hence', 'thus', 'else', 'otherwise', 'namely', 'viz', 'alternatively',
+                        'e.g.', 'i.e.', 'conversely', 'instead', 'eg', 'besides', 'nevertheless', 'however'},
+
+        'amplifier': {'absolutely', 'altogether', 'very', 'completely', 'entirely', 'actually', 'obviously',
+                      'extremely', 'fully', 'perfectly', 'thoroughly', 'totally', 'utterly', 'enormously', 'greatly',
+                      'highly', 'intensely', 'strongly'},
+        # need to add multiword downtoners from Quirk p. 597
+        'downtoner': {'almost', 'nearly', 'practically', 'virtually', 'mildly', 'partially', 'partly', 'slightly',
+                       'somewhat', 'only', 'merely', 'barely', 'hardly', 'approximately', 'broadly', 'generally',
+                       'basically', 'essentially', 'nominally', 'normally', 'primarily', 'principally', 'roughly',
+                       'usually', 'scarely'},
+
+        'emphatic':{'just', 'really', 'most'},
+
+        'place':{'aboard', 'above', 'abroad', 'across', 'ahead', 'alongside', 'ashore', 'astern', 'away', 'behind',
+                 'below', 'beneath', 'beneath', 'beside', 'downhill', 'downstairs', 'downstream', 'east', 'here', 'off',
+                 'out', 'far', 'hereabouts', 'indoors', 'inland', 'inshore', 'inside', 'locally', 'near', 'nearby',
+                 'north', 'nowhere', 'outdoors', 'outside', 'overboard', 'overland', 'overseas', 'south', 'underfoot',
+                 'underground', 'underneath', 'uphill', 'upstairs', 'upstream', 'west'},
+
+        'time':{'again', 'early', 'late', 'presently', 'today', 'nowadays', 'simultaneously', 'tomorrow', 'tonight',
+                'yesterday', 'now', 'earlier', 'afterwards', 'eventually', 'formerly', 'initially', 'immediately',
+                'instantly', 'lately', 'later', 'momentarily', 'once', 'originally', 'previously', 'recently',
+                'shortly', 'soon', 'subsequently', 'then'}
+    },
     # Passive post-nominal modifiers
     # Types below come from Longman Corpus
     'vwbn': {

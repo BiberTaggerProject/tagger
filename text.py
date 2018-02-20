@@ -724,7 +724,7 @@ class Text:
             # word of an item and the next word matches the second word in a multiword item and the next word matches
             # the third word in a multiword item, then it tags all three words as a multiword subordinating conjunction
             for items in self.lexicon_dict['subordinating_conjunctions_multi']:
-                if len(items) > 2:
+                if len(items) >  2 and len(sent) > i + 1 :
                     if items[0] == sent[i][0].lower() and items[1] == sent[i + 1][0] and items[2] == sent[i + 2][0]:
                         sent[i][2][0] = 'C'
                         sent[i][2][1] = 'S'
@@ -737,13 +737,14 @@ class Text:
                         sent[i + 2][2][4] = 'MULTI'
                 # same thing as above except two words instead of three
                 else:
-                    if items[0] == sent[i][0].lower() and items[1] == sent[i + 1][0]:
-                        sent[i][2][0] = 'C'
-                        sent[i][2][1] = 'S'
-                        sent[i][2][4] = 'MULTI'
-                        sent[i + 1][2][0] = 'C'
-                        sent[i + 1][2][1] = 'S'
-                        sent[i + 1][2][4] = 'MULTI'
+                    if len(sent) > i + 1:
+                        if items[0] == sent[i][0].lower() and items[1] == sent[i + 1][0]:
+                            sent[i][2][0] = 'C'
+                            sent[i][2][1] = 'S'
+                            sent[i][2][4] = 'MULTI'
+                            sent[i + 1][2][0] = 'C'
+                            sent[i + 1][2][1] = 'S'
+                            sent[i + 1][2][4] = 'MULTI'
             # tags causative subordinating conjunction by checking if it is CS in CLAWS and in the causative class
             if tag[0:2] == 'CS' and word.lower() in ['because', 'cuz', 'cos', 'cause']:
                 sent[i][2][2] = 'CAUS'
