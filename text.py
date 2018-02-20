@@ -716,6 +716,56 @@ class Text:
                 if sent[i - 1][2][2] == 'CLP' or (sent[i - 1][2][1] == 'COM' and sent[i + 1][0].lower() in ['it', 'so',
                         'then', 'you', 'there', 'this', 'these', 'those', 'that', 'I', 'we', 'he', 'she', 'they']):
                     sent[i][2][2] = 'CLS'
+
+            # checks to see if it tagged as a subordinating conjunction in CLAWS and if so, tags it as such in Biber
+            if tag[0] == 'C' and tag[1] == 'S':
+                sent[i][2][0] = 'C'
+                sent[i][2][1] = 'S'
+            # goes through all the multiword subordinating conjunctions in the lexicon and if the word matches the first
+            # word of an item and the next word matches the second word in a multiword item and the next word matches
+            # the third word in a multiword item, then it tags all three words as a multiword subordinating conjunction
+            for items in self.lexicon_dict['subordinating_conjunctions_multi']:
+                if len(items) > 2:
+                    if items[0] == sent[i][0].lower() and items[1] == sent[i + 1][0] and items[2] == sent[i + 2][0]:
+                        sent[i][2][0] = 'C'
+                        sent[i][2][1] = 'S'
+                        sent[i][2][4] = 'MULTI'
+                        sent[i + 1][2][0] = 'C'
+                        sent[i + 1][2][1] = 'S'
+                        sent[i + 1][2][4] = 'MULTI'
+                        sent[i + 2][2][0] = 'C'
+                        sent[i + 2][2][1] = 'S'
+                        sent[i + 2][2][4] = 'MULTI'
+                # same thing as above except two words instead of three
+                else:
+                    if items[0] == sent[i][0].lower() and items[1] == sent[i + 1][0]:
+                        sent[i][2][0] = 'C'
+                        sent[i][2][1] = 'S'
+                        sent[i][2][4] = 'MULTI'
+                        sent[i + 1][2][0] = 'C'
+                        sent[i + 1][2][1] = 'S'
+                        sent[i + 1][2][4] = 'MULTI'
+            # tags causative subordinating conjunction by checking if it is CS in CLAWS and in the causative class
+            if tag[0:2] == 'CS' and word.lower() in ['because', 'cuz', 'cos', 'cause']:
+                sent[i][2][2] = 'CAUS'
+            # tags conditional subordinating conjunction by checking if it is CS in CLAWS and in the conditional class
+            elif tag[0:2] == 'CS' and word.lower() in ['unless', 'if']:
+                sent[i][2][2] = 'CND'
+            # tags wh- subordinating conjunctions by checking if they are CS in CLAWS and are a wh- word
+            elif tag[0:2] == 'CS' and word.lower() in ['what', 'how', 'whether', 'whoever', 'where', 'wherein',
+                                                       'when',
+                                                       'why', 'whomever', 'whichever', 'wherever', 'whenever',
+                                                       'whatever']:
+                sent[i][2][2] = 'WH'
+            # tags concessive subordinating conjunction by checking if it is CS in CLAWS and in the concessive class
+            elif tag[0:2] == 'CS' and word.lower() in ['although', 'though', 'while']:
+                sent[i][2][2] = 'CONC'
+            # tags multiword concessive subordinating conjunctions by checking the tags to see if it the right tag
+            # and then checks the words to see if they match those in the concessive class
+            elif sent[i][2][0:2] == ['C', 'S'] and sent[i][2][4] == 'MULTI' and sent[i][0].lower() == 'even' and \
+                    sent[i + 1][0] in ['though', 'if']:
+                sent[i][2][2] = 'CONC'
+                sent[i + 1][2][2] = 'CONC'
         return sent
 
     def replace_in_claws(self, sent):
