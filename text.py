@@ -107,6 +107,7 @@ class Text:
                         self.modal_types,
                         self.conjunction_types,
                         self.adverb_types,
+                        self.noun_types,
                         self.basic_matcher]
 
     def tokens(self):
@@ -765,6 +766,27 @@ class Text:
                     sent[i + 1][0] in ['though', 'if']:
                 sent[i][2][2] = 'CONC'
                 sent[i + 1][2][2] = 'CONC'
+        return sent
+
+    def noun_types(self, sent):
+        for i, (word, tag, biber_tags) in enumerate(sent):
+            if tag[0] == 'N':
+                for suffix in self.lexicon_dict['nominalization_suffices']:
+                    suff_len = len(suffix)
+                    word_len = len(word)
+                    if word_len > suff_len:
+                        if suff_len >= 3 and word_len > 6 and word[-suff_len:] == suffix:
+                            sent[i][2][3] = 'NOM'
+                            if word[-1] == 's':
+                                sent[i][2][2] = 'PLUR'
+                            else:
+                                sent[i][2][2] = 'SING'
+                        if suff_len < 3 and word_len > 7 and word[-suff_len:] == suffix:
+                            sent[i][2][3] = 'NOM'
+                            if word[-1] == 's':
+                                sent[i][2][2] = 'PLUR'
+                            else:
+                                sent[i][2][2] = 'SING'
         return sent
 
     def replace_in_claws(self, sent):
