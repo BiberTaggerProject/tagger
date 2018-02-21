@@ -146,6 +146,14 @@ lexicon = {
                 'instantly', 'lately', 'later', 'momentarily', 'once', 'originally', 'previously', 'recently',
                 'shortly', 'soon', 'subsequently', 'then'}
     },
+
+    # Nominalization suffices
+    'nominalization_suffices':{'al', 'an', 'ful', 'er', 'acies', 'acy', 'als', 'ans', 'ance', 'ants', 'ary', 'dom',
+                               'doms', 'ee', 'eer', 'ees', 'eers', 'ence', 'ences', 'ers', 'eries', 'ery', 'ese', 'ess',
+                               'ette', 'fuls', 'hood', 'hoods', 'ism', 'isms', 'ist', 'ists', 'ities', 'ity', 'let',
+                               'lets', 'ling', 'lings', 'ment', 'ments', 'ness', 'nesses', 'ship', 'ships', 'ster',
+                               'sters', 'tion', 'tions', 'ant', 'age', 'ages', 'ate', 'ates'},
+
     # Passive post-nominal modifiers
     # Types below come from Longman Corpus
     'vwbn': {
